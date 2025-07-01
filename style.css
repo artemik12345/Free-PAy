@@ -1,501 +1,390 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
-/* Base Styles */
-* {
-  margin: 0 auto;
-  text-align: center;
-  justify-content: center;
-  font-family: "Inter", sans-serif;
-  color: rgb(255, 248, 239);
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  GoogleAuthProvider,
+  signInWithPopup,
+  onAuthStateChanged,
+  updateProfile,
+  updateEmail
+} from "firebase/auth";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc
+} from "firebase/firestore";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyC-grJlXshD89_MdLFm5oosejZDGR-gtgc",
+  authDomain: "freepay-app.firebaseapp.com",
+  projectId: "freepay-app",
+  storageBucket: "freepay-app.appspot.com",
+  messagingSenderId: "812063343387",
+  appId: "1:812063343387:web:83a5dd07d770cd1aca09be",
+  measurementId: "G-BM44C1C2JR"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+// Функція для перевороту карти
+function flipCard(cardElement) {
+  if (!cardElement) return;
+  cardElement.classList.toggle('flipped');
 }
 
-body {
-  background-color: #2c283b;
+// Відкриття модалки по id
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.remove('hide');
+  modal.style.display = 'flex';
+
+  const settingsBtn = document.querySelector('.open-settings');
+  if (settingsBtn) settingsBtn.classList.add('disabled');
 }
 
-/* Header */
-header {
-  width: auto;
-  height: 80px;
-  background-color: #1f1b2e;
-  display: flex;
-  gap: 850px;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+// Закриття модалки по id
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.add('hide');
+  setTimeout(() => {
+    modal.style.display = 'none';
+    modal.classList.remove('hide');
+    unlockSettingsIfNoModalsOpen();
+  }, 400);
 }
 
-.logoo {
-  margin-top: 19px;
-  font-size: 35px;
-  font-weight: 600;
-  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+// Закриття модалки (з HTML викликається closeCustomModal)
+function closeCustomModal(id) {
+  closeModal(id);
 }
 
-/* Main Content */
-main {
-  width: auto;
-  height: 430px;
+// Перевірка відкритих модалок і розблокування кнопки налаштувань
+function unlockSettingsIfNoModalsOpen() {
+  const modals = ['profileModal', 'loginModal', 'registerModal', 'sendModal', 'historyModal', 'newCardModal', 'settingsModal'];
+  const anyOpen = modals.some(id => {
+    const el = document.getElementById(id);
+    return el && !el.classList.contains('hide') && el.style.display === 'flex';
+  });
+  const settingsBtn = document.querySelector('.open-settings');
+  if (settingsBtn && !anyOpen) settingsBtn.classList.remove('disabled');
 }
 
-.cnopki1 {
-  margin-top: 20px;
-  width: 80px;
-  height: 40px;
-  border-radius: 15px;
-  border: none;
-  background-color: #3f3564;
-  margin-right: 10px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.6);
-  transition: background-color 0.3s ease;
-  cursor: pointer;
+// Копіювання номера карти
+function copyCardNumber(event) {
+  event.stopPropagation();
+  const number = event.target.textContent;
+  navigator.clipboard.writeText(number)
+    .then(() => alert("Card number copied: " + number))
+    .catch(() => alert("Copy error"));
 }
 
-.cnopki1:hover {
-  background-color: rgb(76, 58, 110);
-}
+// Показати аватар користувача після входу
+function showUserAvatar(user) {
+  const authButtons = document.getElementById('authButtons');
+  if (authButtons) authButtons.style.display = 'none';
 
-/* Card Styles */
-.card {
-  perspective: 1000px;
-  width: 380px;
-  height: 220px;
-  margin-top: 100px;
-  transition: transform 0.3s ease;
-}
+  const container = document.getElementById('userAvatarContainer');
+  if (container) container.style.display = 'block';
 
-.card:hover {
-  transform: translateY(-10px);
-}
-
-.card-inner {
-  width: 100%;
-  height: 100%;
-  transition: transform 0.8s;
-  transform-style: preserve-3d;
-  position: relative;
-}
-
-.card.flipped .card-inner {
-  transform: rotateY(180deg);
-}
-
-.card-front,
-.card-back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 20px;
-  backface-visibility: hidden;
-  background-color: #1e1736;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.6);
-}
-
-.card-front {
-  color: white;
-}
-
-.card-back {
-  transform: rotateY(180deg);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.logooo {
-  font-weight: 600;
-  font-size: 20px;
-  padding-top: 15px;
-  text-align: left;
-  margin-left: 20px;
-}
-
-.nam {
-  margin-top: 55px;
-  font-size: 25px;
-  font-weight: 600;
-  word-spacing: 15px;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.nam:hover {
-  color: #5d5b79;
-}
-
-.srok {
-  padding-top: 55px;
-  text-align: right;
-  margin-right: 30px;
-}
-
-.cvv-label {
-  font-weight: 600;
-  margin-bottom: 10px;
-  margin-right: 10px;
-}
-
-.cvv-code {
-  font-weight: 600;
-}
-
-.carddd {
-  width: 110px;
-  height: 50px;
-  background-color: #120227;
-  display: flex;
-  font-size: 16px;
-  margin-left: 250px;
-  margin-top: 60px;
-  border-radius: 10px;
-}
-
-.cardd {
-  padding-top: 15px;
-  display: flex;
-}
-
-.card1 {
-  padding-top: 8px;
-}
-
-.polosa {
-  width: 380px;
-  margin-top: 30px;
-  background-color: #120227;
-  height: 50px;
-}
-
-/* Buttons */
-.batoni {
-  margin-top: 30px;
-}
-
-.batoni1 {
-  width: 120px;
-  height: 40px;
-  border-radius: 10px;
-  background-color: #332b4f;
-  border: none;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.6);
-  transition: background-color 0.3s ease;
-  cursor: pointer;
-  color: white;
-  font-weight: 600;
-}
-
-.batoni1:hover {
-  background-color: rgb(60, 45, 86);
-}
-
-#btn2 {
-  margin-left: 10px;
-  margin-right: 10px;
-}
-
-/* Balance Section */
-.balanss {
-  margin-top: 30px;
-  display: flex;
-  width: 600px;
-}
-
-.text {
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.btnnn {
-  width: 65px;
-  height: 65px;
-  border-radius: 100%;
-  background-color: #332b4f;
-  border: none;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.6);
-  margin-top: 20px;
-  transition: background-color 0.3s ease;
-  cursor: pointer;
-}
-.aaaa{
-   position: absolute;
-    right: 5px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #ffffff;
-    cursor: pointer;
-    font-weight: 600;
-    height: 70%;
-    font-size: 0.9rem;
-}
-.btnnn:hover {
-  background-color: rgb(60, 45, 86);
-}
-
-.btnnn1 {
-  padding-top: 2px;
-  padding-right: 30px;
-  width: 50px;
-  height: 50px;
-  user-select: none;
-}
-
-/* Settings Button */
-.open-settings {
-  position: absolute;
-  right: 2%;
-  top: 83%;
-  transform: translateY(-50%);
-  width: 50px;
-  height: 50px;
-  font-size: 22px;
-  border-radius: 50%;
-  background-color: #332b4f;
-  border: none;
-  color: white;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.6);
-  cursor: pointer;
-  z-index: 1000;
-}
-
-.open-settings.disabled {
-  opacity: 0.3;
-  pointer-events: none;
-}
-
-/* Modal Styles */
-.modal {
-  display: none;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  justify-content: center;
-  align-items: end;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 999;
-  backdrop-filter: blur(4px);
-}
-.modal-content {
-  width: 100%;
-  max-width: 400px;
-  background-color: #1f1b2e;
-  padding: 25px;
-  border-radius: 20px 20px 0 0;
-  animation: slideUp 0.4s ease forwards;
-  text-align: center;
-  color: white;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0%);
-    opacity: 1;
+  const avatarImg = document.getElementById('userAvatar');
+  if (avatarImg) {
+    avatarImg.src = user.photoURL || '/images/proff.png';
+    avatarImg.alt = user.displayName || user.email || '';
+    avatarImg.title = user.displayName || user.email || '';
   }
 }
 
-@keyframes slideDown {
-  from {
-    transform: translateY(0%);
-    opacity: 1;
-  }
-  to {
-    transform: translateY(100%);
-    opacity: 0;
-  }
+// Показати кнопки авторизації, якщо користувач не в системі
+function showAuthButtons() {
+  const authButtons = document.getElementById('authButtons');
+  if (authButtons) authButtons.style.display = 'flex';
+
+  const container = document.getElementById('userAvatarContainer');
+  if (container) container.style.display = 'none';
+
+  closeModal('profileModal');
 }
 
-.modal.hide .modal-content {
-  animation: slideDown 0.4s ease forwards;
-}
+// Реєстрація користувача
+async function register(email, password, name) {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
 
-/* Footer */
-footer {
-  width: 100%;
-  height: 85px;
-  background-color: #1f1b2e;
-  position: absolute;
-  top: 90%;
-}
+    await setDoc(doc(db, "users", user.uid), {
+      name: name,
+      email: email,
+      createdAt: new Date().toISOString(),
+      avatar: '/images/proff.png'
+    });
 
-.em {
-  padding-top: 13px;
-  font-size: 50px;
-  font-weight: 900;
-  color: #3e3649;
-  user-select: none;
-}
+    await updateProfile(user, { displayName: name });
 
-/* Modal Inputs */
-.modal-input {
-  margin: 10px auto;
-  padding: 8px;
-  width: 80%;
-  border-radius: 10px;
-  border: none;
-  font-size: 16px;
-  background-color: #3e3549;
-  color: white;
-}
-
-.his {
-  padding-top: 20px;
-}
-
-.cois {
-  padding-top: 20px;
-  padding-bottom: 10px;
-}
-
-/* Modal Buttons */
-.modal-btn {
-  margin: 6px;
-  padding: 10px 20px;
-  background-color: #3f3564;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 16px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.6);
-  transition: background-color 0.3s ease;
-}
-
-.modal-btn:hover {
-  background-color: rgb(76, 58, 110);
-}
-
-.modal-close {
-  margin-top: 20px;
-  font-size: 22px;
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-/* Avatar Menu */
-#avatarMenu p:hover {
-  background-color: rgb(76, 58, 110);
-  cursor: pointer;
-  border-radius: 5px;
-}
-
-/* Profile Modal */
-#profileModal .modal-input {
-  margin: 10px auto;
-  padding: 8px;
-  width: 90%;
-  border-radius: 10px;
-  border: none;
-  font-size: 16px;
-  background-color: #3e3549;
-  color: white;
-}
-
-#profileModal .modal-btn {
-  margin: 6px 5px;
-  padding: 10px 20px;
-  background-color: #3f3564;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-#profileModal .modal-btn:hover {
-  background-color: rgb(76, 58, 110);
-}
-
-.pp {
-  margin-top: 15px;
-}
-#profilePassword{
-position: relative;
-right: 30px;
-
-}
-
-/* Google Sign-In Button */
-body .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{
-  margin-top: 10px;
-  background-color: rgb(70, 62, 101);
-  border: none;
-  margin-left: 70px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.6);
-}
-
-/* Responsive Styles */
-@media (max-width: 768px) {
-  header {
-    flex-direction: column;
-    height: auto;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .logoo {
-    font-size: 28px;
-    margin-top: 10px;
-  }
-
-  .cnopki {
-    margin-bottom: 10px;
-  }
-
-  .card {
-    width: 90%;
-    height: auto;
-  }
-
-  .batoni {
-    display: flex !important;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-  }
-
-  .batoni1 {
-    width: 120px !important;
-  }
-
-  .balanss {
-    width: 100%;
-    max-width: none;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 20px;
-  }
-
-  .open-settings {
-    position: static !important;
-    margin: 20px auto 0 auto;
-    display: block;
-    transform: none;
-  }
-
-  footer {
-    position: static !important;
-    height: auto;
-    top: auto;
-    padding: 20px 0;
-  }
-
-  .em {
-    font-size: 24px;
-  }
-
-  .modal-content {
-    max-width: 95%;
-    margin-bottom: 10px;
-    border-radius: 20px;
+    alert("Registered successfully!");
+    closeModal("registerModal");
+  } catch (error) {
+    alert("Registration error: " + error.message);
   }
 }
+
+// Логін користувача
+async function login(email, password) {
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("Logged in!");
+    closeModal("loginModal");
+  } catch (error) {
+    alert("Login error: " + error.message);
+  }
+}
+
+// Вихід користувача
+async function logout() {
+  try {
+    await signOut(auth);
+    showAuthButtons();
+  } catch (error) {
+    alert("Logout error: " + error.message);
+  }
+}
+
+// Вхід через Google
+async function googleSignIn() {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      await setDoc(userRef, {
+        name: user.displayName,
+        email: user.email,
+        avatar: user.photoURL || '/images/proff.png',
+        createdAt: new Date().toISOString()
+      });
+    }
+
+    alert(`Welcome, ${user.displayName}!`);
+  } catch (error) {
+    alert("Google Sign-In error: " + error.message);
+  }
+}
+
+// Оновлення профілю користувача
+async function updateUserProfile() {
+  const user = auth.currentUser;
+  if (!user) return alert("Not logged in");
+
+  const newName = document.getElementById("profileName")?.value.trim();
+  const newEmail = document.getElementById("profileEmail")?.value.trim();
+
+  if (!newName || !newEmail) return alert("Fill all fields!");
+
+  try {
+    if (newEmail !== user.email) {
+      await updateEmail(user, newEmail);
+    }
+
+    if (newName !== user.displayName) {
+      await updateProfile(user, { displayName: newName });
+    }
+
+    const userRef = doc(db, "users", user.uid);
+    await updateDoc(userRef, {
+      name: newName,
+      email: newEmail
+    });
+
+    alert("Profile updated");
+    closeModal("profileModal");
+    showUserAvatar(user);
+  } catch (error) {
+    alert("Error updating profile: " + error.message);
+  }
+}
+
+// Зміна теми
+function setTheme(theme) {
+  const root = document.documentElement;
+
+  if (theme === 'light') {
+    root.style.setProperty('--bg-color', '#f5f5f5');
+    root.style.setProperty('--text-color', '#111');
+    root.style.setProperty('--card-color', '#ffffff');
+    root.style.setProperty('--btn-color', '#dddddd');
+    root.style.setProperty('--btn-hover-color', '#bbbbbb');
+  } else {
+    root.style.setProperty('--bg-color', '#2c283b');
+    root.style.setProperty('--text-color', 'rgb(255, 248, 239)');
+    root.style.setProperty('--card-color', '#1e1736');
+    root.style.setProperty('--btn-color', '#3f3564');
+    root.style.setProperty('--btn-hover-color', 'rgb(76, 58, 110)');
+  }
+}
+
+// Зміна мови (простий приклад, можна розвивати)
+function setLanguage(lang) {
+  alert(`Language set to: ${lang}`);
+}
+
+// Події після завантаження DOM
+document.addEventListener("DOMContentLoaded", () => {
+  // Кнопки відкриття модалок
+  document.getElementById("btnlog")?.addEventListener("click", () => openModal("loginModal"));
+  document.getElementById("btnsing")?.addEventListener("click", () => openModal("registerModal"));
+  document.getElementById("logoutBtn")?.addEventListener("click", logout);
+
+  document.getElementById("userAvatar")?.addEventListener("click", () => openModal("profileModal"));
+  document.querySelector(".open-settings")?.addEventListener("click", () => openModal("settingsModal"));
+
+  document.getElementById("btn1")?.addEventListener("click", () => openModal("sendModal"));
+  document.getElementById("btn2")?.addEventListener("click", () => openModal("historyModal"));
+  document.getElementById("btn3")?.addEventListener("click", () => {
+    location.reload();
+    setTheme("dark");
+  });
+
+  document.querySelectorAll(".modal-close").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const modal = btn.closest(".modal");
+      if (modal) closeModal(modal.id);
+    });
+  });
+
+  // Делегування подій копіювання номера карти
+  document.body.addEventListener("click", e => {
+    if (e.target.classList.contains("nam")) copyCardNumber(e);
+  });
+
+  // Делегування перевороту карти
+  document.body.addEventListener("click", e => {
+    const card = e.target.closest(".card");
+    if (card) flipCard(card);
+  });
+
+  // Зміна аватара
+  document.getElementById("profileAvatarContainer")?.addEventListener("click", () => {
+    document.getElementById("avatarInput")?.click();
+  });
+
+  document.getElementById("avatarInput")?.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) return alert("Avatar must be less than 2MB");
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      document.getElementById("profileAvatar").src = ev.target.result;
+      // Тут можна додати завантаження на сервер
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Toggle пароля
+  const togglePwdBtn = document.getElementById("togglePasswordBtn");
+  if (togglePwdBtn) {
+    togglePwdBtn.addEventListener("click", () => {
+      const pwdInput = document.getElementById("profilePassword");
+      if (!pwdInput) return;
+      if (pwdInput.type === "password") {
+        pwdInput.type = "text";
+        togglePwdBtn.textContent = "Hide";
+      } else {
+        pwdInput.type = "password";
+        togglePwdBtn.textContent = "Show";
+      }
+    });
+  }
+
+  // Авторизація Firebase (стежимо за станом)
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      showUserAvatar(user);
+      document.getElementById('profileName').value = user.displayName || '';
+      document.getElementById('profileEmail').value = user.email || '';
+      document.getElementById('profileAvatar').src = user.photoURL || '/images/proff.png';
+
+      const settingsBtn = document.querySelector('.open-settings');
+      if (settingsBtn) settingsBtn.classList.add('disabled');
+    } else {
+      showAuthButtons();
+    }
+  });
+
+  // Реєстрація (кнопка в модалці)
+  const registerBtn = document.querySelector("#registerModal button.modal-btn:not([id])");
+  if (registerBtn) {
+    registerBtn.addEventListener("click", () => {
+      const name = document.querySelector('#registerModal input[placeholder="Name"]')?.value.trim();
+      const email = document.querySelector('#registerModal input[placeholder="Email"]')?.value.trim();
+      const password = document.querySelector('#registerModal input[placeholder="Password"]')?.value;
+      if (!name || !email || !password) return alert("Fill all fields!");
+      register(email, password, name);
+    });
+  }
+
+  // Логін (кнопка в модалці)
+  const loginBtn = document.querySelector("#loginModal button.modal-btn");
+  if (loginBtn) {
+    loginBtn.addEventListener("click", () => {
+      const email = document.querySelector('#loginModal input[placeholder="Email"]')?.value.trim();
+      const password = document.querySelector('#loginModal input[placeholder="Password"]')?.value;
+      if (!email || !password) return alert("Fill all fields!");
+      login(email, password);
+    });
+  }
+
+  // Збереження профілю
+  const saveProfileBtn = document.getElementById("saveProfileBtn");
+  if (saveProfileBtn) {
+    saveProfileBtn.addEventListener("click", updateUserProfile);
+  }
+
+  // Google Sign-In кнопки
+  window.google?.accounts.id.initialize({
+    client_id: "YOUR_GOOGLE_CLIENT_ID",
+    callback: (response) => {
+      // Handle Google One Tap or Sign In (реалізація за потребою)
+    }
+  });
+
+  // Google кнопки додати у потрібні div
+  const googleLoginDiv = document.getElementById('googleSignInLoginDiv');
+  const googleRegisterDiv = document.getElementById('googleSignInRegisterDiv');
+  if (googleLoginDiv) {
+    const btn = document.createElement('button');
+    btn.textContent = "Sign in with Google";
+    btn.className = "modal-btn";
+    btn.addEventListener('click', googleSignIn);
+    googleLoginDiv.appendChild(btn);
+  }
+  if (googleRegisterDiv) {
+    const btn = document.createElement('button');
+    btn.textContent = "Sign up with Google";
+    btn.className = "modal-btn";
+    btn.addEventListener('click', googleSignIn);
+    googleRegisterDiv.appendChild(btn);
+  }
+});
+
+// Експортуємо функції в глобальний контекст, бо в HTML викликаються (наприклад flipCard)
+window.flipCard = flipCard;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.closeCustomModal = closeCustomModal;
+window.copyCardNumber = copyCardNumber;
+window.setTheme = setTheme;
+window.setLanguage = setLanguage;
