@@ -8,7 +8,7 @@
   <link rel="icon" href="/images/FreePay.png" type="image/png" />
   <link rel="stylesheet" href="style.css" />
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <script src="sindex.js" defer></script>
@@ -38,7 +38,7 @@
 
       <!-- Основний контент -->
       <div class="osnova">
-        <div class="card" onclick="flipCard(this)">
+        <div class="card">
           <div class="card-inner">
             <div class="card-front">
               <p class="logooo">Free/Pay</p>
@@ -63,6 +63,7 @@
           <button class="batoni1" id="btn1">Send</button>
           <button class="batoni1" id="btn2">History</button>
           <button class="batoni1" id="btn3">Update</button>
+          <button class="batoni1" id="btnNewCard">New Card</button>
         </div>
 
         <div class="balanss">
@@ -200,6 +201,33 @@
       <p class="em">freepay@gmail.com</p>
     </footer>
   </div>
+
+  <script>
+    // Фліп карти: делегуємо на контейнер з класом .card
+    document.querySelector('.card').addEventListener('click', function () {
+      this.classList.toggle('flipped');
+    });
+
+    // Відкриття модалки New Card по кнопці
+    document.getElementById('btnNewCard').addEventListener('click', () => {
+      const modal = document.getElementById('newCardModal');
+      modal.style.display = 'flex';
+      modal.classList.remove('hide');
+    });
+
+    // Закриття всіх модалок по кнопках із класом modal-close
+    document.querySelectorAll('.modal-close').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const modal = btn.closest('.modal');
+        if (!modal) return;
+        modal.classList.add('hide');
+        setTimeout(() => {
+          modal.style.display = 'none';
+          modal.classList.remove('hide');
+        }, 300);
+      });
+    });
+  </script>
 </body>
 
 </html>
