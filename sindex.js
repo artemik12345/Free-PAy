@@ -369,4 +369,15 @@ document.getElementById('togglePasswordBtn').addEventListener('click', () => {
     btn.textContent = 'Show';
   }
 });
+// Кнопка Google Sign-In для логіну
+google.accounts.id.renderButton(
+  document.getElementById('googleSignInLoginDiv'),
+  { theme: 'outline', size: 'large', width: 240 }
+);
+
+// Кнопка Google Sign-In для реєстрації
+google.accounts.id.renderButton(
+  document.getElementById('googleSignInRegisterDiv'),
+  { theme: 'outline', size: 'large', width: 240 }
+);
 
