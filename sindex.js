@@ -352,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Прикріплення обробників для кнопок Send, History, Update
   document.getElementById('btn1').addEventListener('click', () => openCustomModal('sendModal'));
   document.getElementById('btn2').addEventListener('click', () => openCustomModal('historyModal'));
-  document.getElementById('btn3').addEventListener('click', () => location.reload();
+ 
   setTheme('dark');
 });
 document.getElementById('togglePasswordBtn').addEventListener('click', () => {
