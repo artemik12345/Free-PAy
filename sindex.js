@@ -23,7 +23,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyC-grJlXshD89_MdLFm5oosejZDGR-gtgc",
   authDomain: "freepay-app.firebaseapp.com",
   projectId: "freepay-app",
-  storageBucket: "freepay-app.firebasestorage.app",
+  storageBucket: "freepay-app.appspot.com",
   messagingSenderId: "812063343387",
   appId: "1:812063343387:web:83a5dd07d770cd1aca09be",
   measurementId: "G-BM44C1C2JR"
@@ -91,9 +91,9 @@ function showUserAvatar(user) {
 
   const avatarImg = document.getElementById('userAvatar');
   if (avatarImg) {
-    avatarImg.src = user.photoURL || user.avatar || '/images/proff.png';
-    avatarImg.alt = user.displayName || user.name || user.email || '';
-    avatarImg.title = user.displayName || user.name || user.email || '';
+    avatarImg.src = user.photoURL || '/images/proff.png';
+    avatarImg.alt = user.displayName || user.email || '';
+    avatarImg.title = user.displayName || user.email || '';
   }
 }
 
@@ -114,8 +114,11 @@ async function register(email, password, name) {
     await setDoc(doc(db, "users", user.uid), {
       name: name,
       email: email,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      avatar: '/images/proff.png'
     });
+
+    await updateProfile(user, { displayName: name });
 
     alert("Registered successfully!");
     closeModal("registerModal");
@@ -148,7 +151,24 @@ async function logout() {
 // Google Sign-In
 async function googleSignIn() {
   try {
-    await signInWithPopup(auth, provider);
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    
+    // Перевіряємо чи є користувач в базі даних
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    if (!userSnap.exists()) {
+      // Якщо немає, створюємо нового
+      await setDoc(userRef, {
+        name: user.displayName,
+        email: user.email,
+        avatar: user.photoURL || '/images/proff.png',
+        createdAt: new Date().toISOString()
+      });
+    }
+    
+    alert(`Welcome, ${user.displayName}!`);
   } catch (error) {
     alert("Google Sign-In error: " + error.message);
   }
@@ -165,19 +185,47 @@ async function updateUserProfile() {
   if (!newName || !newEmail) return alert("Fill all fields!");
 
   try {
+    // Оновлюємо email в Firebase Auth
     if (newEmail !== user.email) {
       await updateEmail(user, newEmail);
     }
-    await updateProfile(user, { displayName: newName });
+    
+    // Оновлюємо displayName в Firebase Auth
+    if (newName !== user.displayName) {
+      await updateProfile(user, { displayName: newName });
+    }
 
+    // Оновлюємо дані в Firestore
     const userRef = doc(db, "users", user.uid);
-    await updateDoc(userRef, { name: newName, email: newEmail });
+    await updateDoc(userRef, { 
+      name: newName, 
+      email: newEmail 
+    });
 
     alert("Profile updated");
     closeModal("profileModal");
     showUserAvatar(user);
   } catch (error) {
     alert("Error updating profile: " + error.message);
+  }
+}
+
+// Теми
+function setTheme(theme) {
+  const root = document.documentElement;
+
+  if (theme === 'light') {
+    root.style.setProperty('--bg-color', '#f5f5f5');
+    root.style.setProperty('--text-color', '#111');
+    root.style.setProperty('--card-color', '#ffffff');
+    root.style.setProperty('--btn-color', '#dddddd');
+    root.style.setProperty('--btn-hover-color', '#bbbbbb');
+  } else {
+    root.style.setProperty('--bg-color', '#2c283b');
+    root.style.setProperty('--text-color', 'rgb(255, 248, 239)');
+    root.style.setProperty('--card-color', '#1e1736');
+    root.style.setProperty('--btn-color', '#3f3564');
+    root.style.setProperty('--btn-hover-color', 'rgb(76, 58, 110)');
   }
 }
 
@@ -210,24 +258,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (card) flipCard(card);
   });
 
-  // Кнопки Google Sign-In (створюємо кнопки динамічно)
-  const googleLoginDiv = document.getElementById("googleSignInLoginDiv");
-  if (googleLoginDiv) {
-    const googleLoginBtn = document.createElement("button");
-    googleLoginBtn.textContent = "Sign In with Google";
-    googleLoginBtn.classList.add("modal-btn");
-    googleLoginBtn.addEventListener("click", googleSignIn);
-    googleLoginDiv.appendChild(googleLoginBtn);
-  }
-
-  const googleRegisterDiv = document.getElementById("googleSignInRegisterDiv");
-  if (googleRegisterDiv) {
-    const googleRegisterBtn = document.createElement("button");
-    googleRegisterBtn.textContent = "Sign Up with Google";
-    googleRegisterBtn.classList.add("modal-btn");
-    googleRegisterBtn.addEventListener("click", googleSignIn);
-    googleRegisterDiv.appendChild(googleRegisterBtn);
-  }
+  // Кнопки Google Sign-In
+  document.getElementById("googleSignInBtnLogin")?.addEventListener("click", googleSignIn);
+  document.getElementById("googleSignInBtnRegister")?.addEventListener("click", googleSignIn);
 
   // Реєстрація (кнопка)
   const registerBtn = document.querySelector("#registerModal button.modal-btn:not([id])");
@@ -269,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const reader = new FileReader();
     reader.onload = (ev) => {
       document.getElementById("profileAvatar").src = ev.target.result;
-      // Логіку завантаження аватара на сервер додай сам
+      // Тут можна додати логіку завантаження аватара на сервер
     };
     reader.readAsDataURL(file);
   });
@@ -302,6 +335,12 @@ document.addEventListener("DOMContentLoaded", () => {
   onAuthStateChanged(auth, (user) => {
     if (user) {
       showUserAvatar(user);
+      
+      // Заповнюємо дані профілю при відкритті модалки
+      document.getElementById('profileName').value = user.displayName || '';
+      document.getElementById('profileEmail').value = user.email || '';
+      document.getElementById('profileAvatar').src = user.photoURL || '/images/proff.png';
+      
       const settingsBtn = document.querySelector('.open-settings');
       if (settingsBtn) settingsBtn.classList.add('disabled');
     } else {
@@ -309,25 +348,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-
-// Теми
-function setTheme(theme) {
-  const root = document.documentElement;
-
-  if (theme === 'light') {
-    root.style.setProperty('--bg-color', '#f5f5f5');
-    root.style.setProperty('--text-color', '#111');
-    root.style.setProperty('--card-color', '#ffffff');
-    root.style.setProperty('--btn-color', '#dddddd');
-    root.style.setProperty('--btn-hover-color', '#bbbbbb');
-  } else {
-    root.style.setProperty('--bg-color', '#2c283b');
-    root.style.setProperty('--text-color', 'rgb(255, 248, 239)');
-    root.style.setProperty('--card-color', '#1e1736');
-    root.style.setProperty('--btn-color', '#3f3564');
-    root.style.setProperty('--btn-hover-color', 'rgb(76, 58, 110)');
-  }
-}
 
 // Експорт (якщо потрібно)
 export {
