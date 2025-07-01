@@ -15,12 +15,14 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const provider = new firebase.auth.GoogleAuthProvider();
 
-// Переворот картки
-function flipCard(cardElement) {
-  if (!cardElement) return;
-  cardElement.classList.toggle('flipped');
-}
-window.flipCard = flipCard;
+// Переворот картки (фліп) - правильна логіка
+document.querySelector('.card').addEventListener('click', function (e) {
+  if (e.target.classList.contains('nam')) {
+    // не перевертати карту при кліці на номер картки
+    return;
+  }
+  this.classList.toggle('flipped'); // додаємо клас flipped на .card
+});
 
 // Копіювання номера картки
 function copyCardNumber(event) {
@@ -241,12 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.classList.contains('nam')) copyCardNumber(e);
   });
 
-  // Переворот картки (тільки по кліку на .card)
-  document.body.addEventListener('click', e => {
-    const card = e.target.closest('.card');
-    if (card) flipCard(card);
-  });
-
   // Зміна аватара
   document.getElementById('profileAvatarContainer')?.addEventListener('click', () => {
     document.getElementById('avatarInput')?.click();
@@ -322,33 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Google Sign-In кнопки
-  const googleLoginDiv = document.getElementById('googleSignInLoginDiv');
-  const googleRegisterDiv = document.getElementById('googleSignInRegisterDiv');
-
-  if (googleLoginDiv) {
-    const btn = document.createElement('button');
-    btn.textContent = 'Sign in with Google';
-    btn.className = 'modal-btn';
+  document.querySelectorAll('.google-btn').forEach(btn => {
     btn.addEventListener('click', googleSignIn);
-    googleLoginDiv.appendChild(btn);
-  }
-  if (googleRegisterDiv) {
-    const btn = document.createElement('button');
-    btn.textContent = 'Sign up with Google';
-    btn.className = 'modal-btn';
-    btn.addEventListener('click', googleSignIn);
-    googleRegisterDiv.appendChild(btn);
-  }
-});
-// Фліп карти по кліку, крім клік по номеру картки
-document.querySelector('.card').addEventListener('click', function (e) {
-  if (e.target.classList.contains('nam')) {
-    // Копіювання номера, фліп не виконуємо
-    return;
-  }
-  const inner = this.querySelector('.card-inner');
-  if (inner) {
-    inner.classList.toggle('flipped');
-  }
-});
+  });
 
+});
