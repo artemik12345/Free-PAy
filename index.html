@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Free/Pay</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script defer src="sindex.js"></script>
+  <style>
+    #profileAvatarContainer:hover #avatarOverlay {
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="conteiner">
+    <header>
+      <p class="logoo">Free/Pay</p>
+      <div class="cnopki" id="authButtons">
+        <button class="cnopki1" id="btnlog">Log In</button>
+        <button class="cnopki1" id="btnsing">Sign Up</button>
+      </div>
+
+      <div id="userAvatarContainer" style="display:none; position: relative;">
+        <img src="/images/proff.png" alt="avatar" id="userAvatar"
+          style="border-radius: 50%; width: 40px; height: 40px; cursor: pointer; margin-top: 20px;" />
+      </div>
+    </header>
+
+    <main>
+
+      <!-- Твій основний контент тут (карти, баланс, кнопки) -->
+      <div class="osnova">
+        <div class="card" onclick="flipCard(this)">
+          <div class="card-inner">
+            <div class="card-front">
+              <p class="logooo">Free/Pay</p>
+              <div class="card1">
+                <p class="nam" onclick="copyCardNumber(event)">0000 0000 0000 0000</p>
+                <p class="srok">00/00</p>
+              </div>
+            </div>
+            <div class="card-back">
+              <div class="polosa"></div>
+              <div class="carddd">
+                <div class="cardd">
+                  <p class="cvv-label">CVV: </p>
+                  <p class="cvv-code">000</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="batoni">
+          <button class="batoni1" id="btn1">Send</button>
+          <button class="batoni1" id="btn2">History</button>
+          <button class="batoni1" id="btn3">Update</button>
+        </div>
+
+        <div class="balanss">
+          <p class="text">Balance:</p>
+          <p class="text" id="Balanc">00.00</p>
+        </div>
+      </div>
+
+      <button class="btnnn"><img class="btnnn1" src="/images/card.png" alt="foto" /></button>
+      <button class="open-settings" onclick="openModal()">⚙️</button>
+
+      <!-- Settings Modal -->
+      <div class="modal" id="settingsModal">
+        <div class="modal-content" id="modalContent">
+          <h2>Settings</h2>
+          <div class="section">
+            <p>Theme:</p>
+            <button class="modal-btn" onclick="setTheme('light')">Light</button>
+            <button class="modal-btn" onclick="setTheme('dark')">Dark</button>
+          </div>
+          <div class="section">
+            <p>Language:</p>
+            <button class="modal-btn" onclick="setLanguage('ua')">UA</button>
+            <button class="modal-btn" onclick="setLanguage('en')">EN</button>
+          </div>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+      </div>
+
+      <!-- Profile Modal -->
+      <div class="modal" id="profileModal">
+        <div class="modal-content">
+          <h2>User profile</h2>
+
+          <div id="profileAvatarContainer"
+            style="position: relative; width: 120px; height: 120px; margin: 0 auto 15px auto; cursor: pointer;">
+            <img class="pp" id="profileAvatar" src="/images/proff.png" alt="Avatar"
+              style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; display: block;" />
+            <div id="avatarOverlay"
+              style="position: absolute; top: 0; left: 0; width: 120px; height: 120px; border-radius: 50%; background: rgba(0,0,0,0.5); color: white; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s;">
+              Click to change avatar
+            </div>
+          </div>
+
+          <input type="file" id="avatarInput" accept="image/*" class="modal-input" style="display: none;" />
+
+          <input type="text" id="profileName" class="modal-input" placeholder="Name" />
+          <input type="email" id="profileEmail" class="modal-input" placeholder="Email" />
+          <div style="position: relative; width: 100%; max-width: 300px; margin-bottom: 15px;">
+            <input type="password" id="profilePassword" class="modal-input" placeholder="New Password (optional)"
+              style="padding-right: 80px;" />
+            <button type="button" id="togglePasswordBtn" class="aaaa">Show</button>
+          </div>
+
+          <button id="logoutBtn" class="modal-btn">Go out</button>
+          <button id="verifyBtn" class="modal-btn">Get verified</button>
+          <button id="saveProfileBtn" class="modal-btn">Save changes</button>
+
+          <button class="modal-close" onclick="closeCustomModal('profileModal')">×</button>
+        </div>
+      </div>
+
+      <!-- Login Modal -->
+      <div class="modal" id="loginModal">
+        <div class="modal-content">
+          <h2>Login</h2>
+          <input type="text" placeholder="Email" class="modal-input" />
+          <input type="password" placeholder="Password" class="modal-input" />
+          <button class="modal-btn">Log In</button>
+
+          <!-- Контейнер для кнопки Google Sign-In -->
+          <div id="googleSignInLoginDiv" style="margin-top: 10px;"></div>
+
+          <button class="modal-close" onclick="closeCustomModal('loginModal')">×</button>
+        </div>
+      </div>
+
+      <!-- Register Modal -->
+      <div class="modal" id="registerModal">
+        <div class="modal-content">
+          <h2>Register</h2>
+          <input type="text" placeholder="Name" class="modal-input" />
+          <input type="text" placeholder="Email" class="modal-input" />
+          <input type="password" placeholder="Password" class="modal-input" />
+          <button class="modal-btn">Sign Up</button>
+
+          <!-- Контейнер для кнопки Google Sign-In -->
+          <div id="googleSignInRegisterDiv" style="margin-top: 10px;"></div>
+
+          <button class="modal-close" onclick="closeCustomModal('registerModal')">×</button>
+        </div>
+      </div>
+
+      <!-- Send Modal -->
+      <div class="modal" id="sendModal">
+        <div class="modal-content">
+          <h2>Send Money</h2>
+          <input type="text" placeholder="Number cart" class="modal-input" />
+          <input type="number" placeholder="sum(€)" class="modal-input" />
+          <button class="modal-btn">Send</button>
+          <button class="modal-close" onclick="closeCustomModal('sendModal')">×</button>
+        </div>
+      </div>
+
+      <!-- History Modal -->
+      <div class="modal" id="historyModal">
+        <div class="modal-content">
+          <h2>History</h2>
+          <p class="his">Currently unavailable</p>
+          <button class="modal-close" onclick="closeCustomModal('historyModal')">×</button>
+        </div>
+      </div>
+
+      <!-- New Card Modal -->
+      <div class="modal" id="newCardModal">
+        <div class="modal-content">
+          <h2>New Card</h2>
+          <p class="cois">Choose a country</p>
+          <select class="modal-input">
+            <option>Ukraine</option>
+            <option>France</option>
+            <option>Italy</option>
+            <option>USA</option>
+            <option>Poland</option>
+            <option>Cyprus</option>
+            <option>Germany</option>
+          </select>
+          <p class="cois">It costs 0.50€</p>
+          <button class="modal-btn">Create</button>
+          <button class="modal-close" onclick="closeCustomModal('newCardModal')">×</button>
+        </div>
+      </div>
+
+    </main>
+
+    <footer>
+      <p class="em">freepay@gmail.com</p>
+    </footer>
+  </div>
+</body>
+
+</html>
