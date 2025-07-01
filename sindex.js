@@ -170,23 +170,23 @@ function handleGoogleCredentialResponse(response) {
 
     const users = getUsers();
 
-    // Спроба знайти користувача по googleId
+    // Спроба знайти користувача за googleId
     let user = users.find(u => u.googleId === googleUser.sub);
 
     if (!user) {
-      // Якщо не знайшли за googleId — шукаємо за email
+      // Якщо не знайдено за googleId, шукаємо за email
       user = users.find(u => u.email === googleUser.email);
 
       if (user) {
-        // Якщо користувач є, але googleId не встановлено, прив'язуємо googleId
+        // Якщо користувач є, але googleId не прив'язано, додаємо googleId
         if (!user.googleId) {
           user.googleId = googleUser.sub;
           user.avatar = googleUser.picture || user.avatar || "/images/proff.png";
-          user.isVerified = true; // вважати верифікованим через Google
+          user.isVerified = true;
           saveUsers(users);
         }
       } else {
-        // Якщо користувача з email немає — створюємо нового
+        // Якщо користувача немає, створюємо нового
         const newUser = {
           name: googleUser.name || "Google User",
           email: googleUser.email,
@@ -201,6 +201,22 @@ function handleGoogleCredentialResponse(response) {
         user = newUser;
       }
     }
+
+    setLoggedInUser(user);
+    showUserAvatar(user);
+    const settingsBtn = document.querySelector('.open-settings');
+    if (settingsBtn) {
+      settingsBtn.classList.add('disabled');
+    }
+    closeCustomModal('loginModal');
+    closeCustomModal('registerModal');
+    alert(`Welcome, ${user.name}!`);
+  } catch (error) {
+    console.error("Google login error:", error);
+    alert("Error during Google login. Please try again.");
+  }
+}
+
 
     setLoggedInUser(user);
 
