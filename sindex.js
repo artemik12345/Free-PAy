@@ -1,4 +1,4 @@
-// Ініціалізація Firebase (постав свої налаштування)
+// Ініціалізація Firebase (твої налаштування)
 const firebaseConfig = {
   apiKey: "AIzaSyC-grJlXshD89_MdLFm5oosejZDGR-gtgc",
   authDomain: "freepay-app.firebaseapp.com",
@@ -15,11 +15,12 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const provider = new firebase.auth.GoogleAuthProvider();
 
-// Функція для перевороту картки
+// Переворот картки
 function flipCard(cardElement) {
   if (!cardElement) return;
   cardElement.classList.toggle('flipped');
 }
+window.flipCard = flipCard;
 
 // Копіювання номера картки
 function copyCardNumber(event) {
@@ -29,8 +30,9 @@ function copyCardNumber(event) {
     .then(() => alert("Card number copied: " + text))
     .catch(() => alert("Failed to copy"));
 }
+window.copyCardNumber = copyCardNumber;
 
-// Відкриття модального вікна за id
+// Відкриття модального вікна
 function openModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
@@ -38,6 +40,7 @@ function openModal(id) {
   modal.classList.remove('hide');
   disableSettingsIfModalOpen(true);
 }
+window.openModal = openModal;
 
 // Закриття модального вікна
 function closeModal(id) {
@@ -50,20 +53,22 @@ function closeModal(id) {
     disableSettingsIfModalOpen(false);
   }, 300);
 }
+window.closeModal = closeModal;
 
+// Вмикання/вимикання кнопки налаштувань
 function disableSettingsIfModalOpen(isOpen) {
   const settingsBtn = document.querySelector('.open-settings');
   if (!settingsBtn) return;
-  if (isOpen) settingsBtn.classList.add('disabled');
-  else {
-    // Якщо немає відкритих модалок
+  if (isOpen) {
+    settingsBtn.classList.add('disabled');
+  } else {
     const modals = document.querySelectorAll('.modal');
     const anyOpen = Array.from(modals).some(m => m.style.display === 'flex');
     if (!anyOpen) settingsBtn.classList.remove('disabled');
   }
 }
 
-// Показати/сховати кнопки входу/реєстрації та аватар
+// Показати аватар і ховати кнопки логіну/реєстрації
 function showUserAvatar(user) {
   const authButtons = document.getElementById('authButtons');
   if (authButtons) authButtons.style.display = 'none';
@@ -78,6 +83,7 @@ function showUserAvatar(user) {
   }
 }
 
+// Показати кнопки логіну/реєстрації і сховати аватар
 function showAuthButtons() {
   const authButtons = document.getElementById('authButtons');
   if (authButtons) authButtons.style.display = 'flex';
@@ -85,13 +91,12 @@ function showAuthButtons() {
   if (userAvatarContainer) userAvatarContainer.style.display = 'none';
 }
 
-// Реєстрація через Firebase Email/Password
+// Реєстрація через Email/Password
 async function register(email, password, name) {
   try {
     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
     const user = userCredential.user;
 
-    // Зберігаємо додаткові дані у Firestore
     await db.collection('users').doc(user.uid).set({
       name,
       email,
@@ -119,7 +124,7 @@ async function login(email, password) {
   }
 }
 
-// Вихід
+// Вихід із акаунту
 async function logout() {
   try {
     await auth.signOut();
@@ -129,6 +134,7 @@ async function logout() {
     alert('Logout error: ' + error.message);
   }
 }
+window.logout = logout;
 
 // Вхід через Google
 async function googleSignIn() {
@@ -136,7 +142,6 @@ async function googleSignIn() {
     const result = await auth.signInWithPopup(provider);
     const user = result.user;
 
-    // Якщо користувача немає в БД — додати
     const userDoc = await db.collection('users').doc(user.uid).get();
     if (!userDoc.exists) {
       await db.collection('users').doc(user.uid).set({
@@ -151,6 +156,7 @@ async function googleSignIn() {
     alert('Google sign-in error: ' + error.message);
   }
 }
+window.googleSignIn = googleSignIn;
 
 // Оновлення профілю
 async function updateUserProfile() {
@@ -177,11 +183,12 @@ async function updateUserProfile() {
 
     alert('Profile updated!');
     closeModal('profileModal');
-    showUserAvatar(user);
+    showUserAvatar(auth.currentUser);
   } catch (error) {
     alert('Profile update error: ' + error.message);
   }
 }
+window.updateUserProfile = updateUserProfile;
 
 // Теми
 function setTheme(theme) {
@@ -200,13 +207,15 @@ function setTheme(theme) {
     root.style.setProperty('--btn-hover-color', 'rgb(76,58,110)');
   }
 }
+window.setTheme = setTheme;
 
-// Мова (зараз просто alert)
+// Мова
 function setLanguage(lang) {
   alert('Language set to: ' + lang);
 }
+window.setLanguage = setLanguage;
 
-// Обробники після завантаження сторінки
+// DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
   // Відкриття модалок
   document.getElementById('btnlog')?.addEventListener('click', () => openModal('loginModal'));
@@ -217,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn1')?.addEventListener('click', () => openModal('sendModal'));
   document.getElementById('btn2')?.addEventListener('click', () => openModal('historyModal'));
   document.getElementById('btn3')?.addEventListener('click', () => location.reload());
+  document.querySelector('.btnnn')?.addEventListener('click', () => openModal('newCardModal'));
 
   // Закриття модалок
   document.querySelectorAll('.modal-close').forEach(btn => {
@@ -231,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.classList.contains('nam')) copyCardNumber(e);
   });
 
-  // Переворот картки
+  // Переворот картки (тільки по кліку на .card)
   document.body.addEventListener('click', e => {
     const card = e.target.closest('.card');
     if (card) flipCard(card);
@@ -270,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Слухач на зміну статусу аутентифікації
+  // Відслідковування стану аутентифікації
   auth.onAuthStateChanged(user => {
     if (user) {
       showUserAvatar(user);
@@ -311,7 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveProfileBtn.addEventListener('click', updateUserProfile);
   }
 
-  // Кнопки Google Sign-In
+  // Google Sign-In кнопки
   const googleLoginDiv = document.getElementById('googleSignInLoginDiv');
   const googleRegisterDiv = document.getElementById('googleSignInRegisterDiv');
 
@@ -330,13 +340,3 @@ document.addEventListener('DOMContentLoaded', () => {
     googleRegisterDiv.appendChild(btn);
   }
 });
-
-// Виносимо функції у глобальний scope, щоб працювали у HTML
-window.flipCard = flipCard;
-window.copyCardNumber = copyCardNumber;
-window.openModal = openModal;
-window.closeModal = closeModal;
-window.setTheme = setTheme;
-window.setLanguage = setLanguage;
-window.googleSignIn = googleSignIn;
-window.logout = logout;
