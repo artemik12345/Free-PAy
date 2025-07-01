@@ -340,14 +340,4 @@ document.addEventListener('DOMContentLoaded', () => {
     googleRegisterDiv.appendChild(btn);
   }
 });
-// Фліп карти по кліку, крім клік по номеру картки
-document.querySelector('.card').addEventListener('click', function (e) {
-  if (e.target.classList.contains('nam')) {
-    // Копіювання номера, фліп не виконуємо
-    return;
-  }
-  const inner = this.querySelector('.card-inner');
-  if (inner) {
-    inner.classList.toggle('flipped');
-  }
-});
+
