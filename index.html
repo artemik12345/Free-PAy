@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Free/Pay</title>
-  <link rel="icon" href="/images/FreePay.png" type="image/png"/>
+  <link rel="icon" href="/images/FreePay.png" type="image/png" />
   <link rel="stylesheet" href="style.css" />
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script type="module" defer src="sindex.js"></script>
@@ -33,7 +33,7 @@
 
     <main>
 
-      <!-- Твій основний контент тут (карти, баланс, кнопки) -->
+      <!-- Основний контент -->
       <div class="osnova">
         <div class="card" onclick="flipCard(this)">
           <div class="card-inner">
@@ -69,7 +69,7 @@
       </div>
 
       <button class="btnnn"><img class="btnnn1" src="/images/card.png" alt="foto" /></button>
-      <button class="open-settings" onclick="openModal()">⚙️</button>
+      <button class="open-settings">⚙️</button>
 
       <!-- Settings Modal -->
       <div class="modal" id="settingsModal">
@@ -85,7 +85,7 @@
             <button class="modal-btn" onclick="setLanguage('ua')">UA</button>
             <button class="modal-btn" onclick="setLanguage('en')">EN</button>
           </div>
-          <button class="modal-close" onclick="closeModal()">×</button>
+          <button class="modal-close">×</button>
         </div>
       </div>
 
@@ -118,7 +118,7 @@
           <button id="verifyBtn" class="modal-btn">Get verified</button>
           <button id="saveProfileBtn" class="modal-btn">Save changes</button>
 
-          <button class="modal-close" onclick="closeCustomModal('profileModal')">×</button>
+          <button class="modal-close">×</button>
         </div>
       </div>
 
@@ -130,10 +130,9 @@
           <input type="password" placeholder="Password" class="modal-input" />
           <button class="modal-btn">Log In</button>
 
-          <!-- Контейнер для кнопки Google Sign-In -->
           <div id="googleSignInLoginDiv" style="margin-top: 10px;"></div>
 
-          <button class="modal-close" onclick="closeCustomModal('loginModal')">×</button>
+          <button class="modal-close">×</button>
         </div>
       </div>
 
@@ -146,10 +145,9 @@
           <input type="password" placeholder="Password" class="modal-input" />
           <button class="modal-btn">Sign Up</button>
 
-          <!-- Контейнер для кнопки Google Sign-In -->
           <div id="googleSignInRegisterDiv" style="margin-top: 10px;"></div>
 
-          <button class="modal-close" onclick="closeCustomModal('registerModal')">×</button>
+          <button class="modal-close">×</button>
         </div>
       </div>
 
@@ -160,7 +158,7 @@
           <input type="text" placeholder="Number cart" class="modal-input" />
           <input type="number" placeholder="sum(€)" class="modal-input" />
           <button class="modal-btn" onclick="alert('In the process of development')">Send</button>
-          <button class="modal-close" onclick="closeCustomModal('sendModal')">×</button>
+          <button class="modal-close">×</button>
         </div>
       </div>
 
@@ -169,7 +167,7 @@
         <div class="modal-content">
           <h2>History</h2>
           <p class="his">Currently unavailable</p>
-          <button class="modal-close" onclick="closeCustomModal('historyModal')">×</button>
+          <button class="modal-close">×</button>
         </div>
       </div>
 
@@ -189,7 +187,7 @@
           </select>
           <p class="cois">It costs 0.50€</p>
           <button class="modal-btn" onclick="alert('In the process of development')">Create</button>
-          <button class="modal-close" onclick="closeCustomModal('newCardModal')">×</button>
+          <button class="modal-close">×</button>
         </div>
       </div>
 
@@ -200,4 +198,5 @@
     </footer>
   </div>
 </body>
+
 </html>
