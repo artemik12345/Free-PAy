@@ -388,3 +388,4 @@ window.closeCustomModal = closeCustomModal;
 window.copyCardNumber = copyCardNumber;
 window.setTheme = setTheme;
 window.setLanguage = setLanguage;
+ 
