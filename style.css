@@ -537,7 +537,7 @@ body .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{
   animation: slideInRight 0.3s forwards;
 }
 
+.toast-message.success { background-color: rgb(52, 106, 52);color: white; border-radius: 5px; width: 200px; margin-bottom: 5px; height: auto;padding: 5px 5px 5px 5px;}
+.toast-message.error { background-color: rgb(157, 29, 29);color: white; border-radius: 5px; width: 200px; margin-bottom: 5px; height: auto;padding: 5px 5px 5px 5px;}
+.toast-message.info { background-color: rgb(138, 142, 71);color: white; border-radius: 5px; width: 200px; margin-bottom: 5px; height: auto;padding: 5px 5px 5px 5px;}
 
-.toast-message.success { background-color: rgb(52, 106, 52);color: white; border-radius: 5px; width: 200px; margin-bottom: 5px; height: auto;}
-.toast-message.error { background-color: rgb(157, 29, 29);color: white; border-radius: 5px; width: 200px; margin-bottom: 5px; height: auto;}
-.toast-message.info { background-color: rgb(177, 182, 84);color: white; border-radius: 5px; width: 200px; margin-bottom: 5px; height: auto;}
