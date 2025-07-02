@@ -195,28 +195,43 @@ document.getElementById('avatarInput')?.addEventListener('change', async (e) => 
   }
 
   try {
-    const avatarRef = storage.ref(`avatars/${user.uid}/${file.name}`);
-    console.log('Uploading avatar to:', avatarRef.fullPath);
+    const storagePath = `avatars/${user.uid}/${file.name}`;
+    const avatarRef = storage.ref(storagePath);
+    console.log('Uploading avatar to:', storagePath);
 
     const snapshot = await avatarRef.put(file);
-    const downloadURL = await snapshot.ref.getDownloadURL();
 
+    const downloadURL = await snapshot.ref.getDownloadURL();
     console.log('Download URL:', downloadURL);
 
+    // Оновлюємо photoURL у профілі користувача
     await user.updateProfile({ photoURL: downloadURL });
-    console.log('User profile updated with new photoURL');
+    console.log('User photoURL updated');
 
-    // Додаємо кеш-бастер, щоб оновити картинку в браузері
-    const cacheBuster = `?t=${new Date().getTime()}`;
-    document.getElementById('profileAvatar').src = downloadURL + cacheBuster;
-    document.getElementById('userAvatar').src = downloadURL + cacheBuster;
+    // Оновлюємо аватарки на сторінці з кеш-бастером
+    const cacheBuster = `?t=${Date.now()}`;
+    const profileAvatar = document.getElementById('profileAvatar');
+    const userAvatar = document.getElementById('userAvatar');
+
+    if (profileAvatar) {
+      profileAvatar.src = downloadURL + cacheBuster;
+    } else {
+      console.warn('Profile avatar element not found');
+    }
+
+    if (userAvatar) {
+      userAvatar.src = downloadURL + cacheBuster;
+    } else {
+      console.warn('User avatar element not found');
+    }
 
     alert('Avatar updated successfully!');
   } catch (error) {
-    console.error('Failed to upload avatar:', error);
+    console.error('Error uploading avatar:', error);
     alert('Failed to upload avatar: ' + error.message);
   }
 });
+
 
 
 // Тема
