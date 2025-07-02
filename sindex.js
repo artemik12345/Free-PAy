@@ -21,6 +21,9 @@ function showMessage(text, type = 'info', timeout = 4000) {
   const container = document.getElementById('messageContainer');
   if (!container) return;
 
+  // Показати контейнер
+  container.style.display = 'block';
+
   const toast = document.createElement('div');
   toast.className = `toast-message ${type}`;
   toast.textContent = text;
@@ -39,6 +42,11 @@ function showMessage(text, type = 'info', timeout = 4000) {
     toastElem.style.animation = 'slideOutLeft 0.3s forwards';
     toastElem.addEventListener('animationend', () => {
       toastElem.remove();
+
+      // Якщо після видалення toast-ів контейнер порожній — сховати контейнер
+      if (container.children.length === 0) {
+        container.style.display = 'none';
+      }
     });
   }
 }
