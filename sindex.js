@@ -155,7 +155,7 @@ async function logout() {
     await auth.signOut();
     showAuthButtons();
     closeModal('profileModal');
-    showMessage('Logged out!', 'info');
+    showMessage('Logged out!', 'success');
   } catch (error) {
     showMessage('Logout error: ' + error.message, 'error');
   }
