@@ -1,4 +1,4 @@
-// --- Ініціалізація Firebase ---
+// Ініціалізація Firebase (твій конфіг)
 const firebaseConfig = {
   apiKey: "AIzaSyC-grJlXshD89_MdLFm5oosejZDGR-gtgc",
   authDomain: "freepay-app.firebaseapp.com",
@@ -8,7 +8,6 @@ const firebaseConfig = {
   appId: "1:812063343387:web:83a5dd07d770cd1aca09be",
   measurementId: "G-BM44C1C2JR"
 };
-
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
@@ -16,13 +15,42 @@ const db = firebase.firestore();
 const storage = firebase.storage();
 const provider = new firebase.auth.GoogleAuthProvider();
 
+// Функція показу повідомлень у контейнері
+function showMessage(text, type = 'info', timeout = 4000) {
+  const container = document.getElementById('messageContainer');
+  if (!container) return;
+  container.textContent = text;
+
+  // Колір фону залежно від типу
+  container.style.backgroundColor = type === 'error' ? 'rgba(255, 60, 60, 0.9)' :
+    type === 'success' ? 'rgba(60, 255, 60, 0.9)' :
+    'rgba(0, 0, 0, 0.8)';
+
+  container.style.color = 'white';
+  container.style.padding = '12px 20px';
+  container.style.borderRadius = '8px';
+  container.style.position = 'fixed';
+  container.style.bottom = '20px';
+  container.style.right = '20px';
+  container.style.maxWidth = '300px';
+  container.style.fontFamily = 'Arial, sans-serif';
+  container.style.boxShadow = '0 0 10px black';
+  container.style.zIndex = '9999';
+  container.style.display = 'block';
+
+  clearTimeout(container._hideTimeout);
+  container._hideTimeout = setTimeout(() => {
+    container.style.display = 'none';
+  }, timeout);
+}
+
 // Копіювання номера картки
 function copyCardNumber(event) {
   event.stopPropagation();
   const text = event.target.textContent;
   navigator.clipboard.writeText(text)
-    .then(() => alert("Card number copied: " + text))
-    .catch(() => alert("Failed to copy"));
+    .then(() => showMessage("Card number copied: " + text, 'success'))
+    .catch(() => showMessage("Failed to copy", 'error'));
 }
 window.copyCardNumber = copyCardNumber;
 
@@ -96,10 +124,10 @@ async function register(email, password, name) {
     await user.updateProfile({ displayName: name });
     await user.reload();
 
-    alert('Registered successfully!');
+    showMessage('Registered successfully!', 'success');
     closeModal('registerModal');
   } catch (error) {
-    alert('Registration error: ' + error.message);
+    showMessage('Registration error: ' + error.message, 'error');
   }
 }
 
@@ -107,10 +135,10 @@ async function register(email, password, name) {
 async function login(email, password) {
   try {
     await auth.signInWithEmailAndPassword(email, password);
-    alert('Logged in!');
+    showMessage('Logged in!', 'success');
     closeModal('loginModal');
   } catch (error) {
-    alert('Login error: ' + error.message);
+    showMessage('Login error: ' + error.message, 'error');
   }
 }
 
@@ -121,7 +149,7 @@ async function logout() {
     showAuthButtons();
     closeModal('profileModal');
   } catch (error) {
-    alert('Logout error: ' + error.message);
+    showMessage('Logout error: ' + error.message, 'error');
   }
 }
 window.logout = logout;
@@ -141,11 +169,9 @@ async function googleSignIn() {
         createdAt: new Date().toISOString()
       });
     }
-    alert(`Welcome, ${user.displayName}!`);
-    closeModal('loginModal');
-    showUserAvatar(user);
+    showMessage(`Welcome, ${user.displayName}!`, 'success');
   } catch (error) {
-    alert('Google sign-in error: ' + error.message);
+    showMessage('Google sign-in error: ' + error.message, 'error');
   }
 }
 window.googleSignIn = googleSignIn;
@@ -153,12 +179,12 @@ window.googleSignIn = googleSignIn;
 // Оновлення профілю (ім'я, email)
 async function updateUserProfile() {
   const user = auth.currentUser;
-  if (!user) return alert('Not logged in!');
+  if (!user) return showMessage('Not logged in!', 'error');
 
   const newName = document.getElementById('profileName')?.value.trim();
   const newEmail = document.getElementById('profileEmail')?.value.trim();
 
-  if (!newName || !newEmail) return alert('Fill all fields!');
+  if (!newName || !newEmail) return showMessage('Fill all fields!', 'error');
 
   try {
     if (newEmail !== user.email) {
@@ -174,11 +200,11 @@ async function updateUserProfile() {
       email: newEmail
     });
 
-    alert('Profile updated!');
+    showMessage('Profile updated!', 'success');
     closeModal('profileModal');
     showUserAvatar(auth.currentUser);
   } catch (error) {
-    alert('Profile update error: ' + error.message);
+    showMessage('Profile update error: ' + error.message, 'error');
   }
 }
 window.updateUserProfile = updateUserProfile;
@@ -188,55 +214,43 @@ document.getElementById('avatarInput')?.addEventListener('change', async (e) => 
   const file = e.target.files[0];
   if (!file) return;
   if (file.size > 2 * 1024 * 1024) {
-    alert('Avatar must be less than 2MB');
+    showMessage('Avatar must be less than 2MB', 'error');
     return;
   }
 
   const user = auth.currentUser;
   if (!user) {
-    alert('Not logged in!');
+    showMessage('Not logged in!', 'error');
     return;
   }
 
   try {
     const storagePath = `avatars/${user.uid}/${file.name}`;
     const avatarRef = storage.ref(storagePath);
-    console.log('Uploading avatar to:', storagePath);
 
     const snapshot = await avatarRef.put(file);
+
     const downloadURL = await snapshot.ref.getDownloadURL();
-    console.log('Download URL:', downloadURL);
 
     // Оновлюємо photoURL у профілі користувача
     await user.updateProfile({ photoURL: downloadURL });
-
-    // Перезавантажуємо користувача, щоб оновити локальний стан
     await user.reload();
 
-    // Переконуємось, що URL оновився
-    console.log('Updated user photoURL:', auth.currentUser.photoURL);
-
-    // Оновлюємо аватари в UI з кеш-бастером
+    // Оновлюємо аватарки на сторінці з кеш-бастером
     const cacheBuster = `?t=${Date.now()}`;
-
     const profileAvatar = document.getElementById('profileAvatar');
-    if (profileAvatar) {
-      profileAvatar.src = auth.currentUser.photoURL + cacheBuster;
-    } else {
-      console.warn('Profile avatar element not found');
-    }
-
     const userAvatar = document.getElementById('userAvatar');
+
+    if (profileAvatar) {
+      profileAvatar.src = downloadURL + cacheBuster;
+    }
     if (userAvatar) {
-      userAvatar.src = auth.currentUser.photoURL + cacheBuster;
-    } else {
-      console.warn('User avatar element not found');
+      userAvatar.src = downloadURL + cacheBuster;
     }
 
-    alert('Avatar updated successfully!');
+    showMessage('Avatar updated successfully!', 'success');
   } catch (error) {
-    console.error('Error uploading avatar:', error);
-    alert('Failed to upload avatar: ' + error.message);
+    showMessage('Failed to upload avatar: ' + error.message, 'error');
   }
 });
 
@@ -261,7 +275,7 @@ window.setTheme = setTheme;
 
 // Мова (проста реалізація)
 function setLanguage(lang) {
-  alert('Language set to: ' + lang);
+  showMessage('Language set to: ' + lang, 'info');
 }
 window.setLanguage = setLanguage;
 
@@ -337,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = document.querySelector('#registerModal input[placeholder="Name"]')?.value.trim();
     const email = document.querySelector('#registerModal input[placeholder="Email"]')?.value.trim();
     const password = document.querySelector('#registerModal input[placeholder="Password"]')?.value;
-    if (!name || !email || !password) return alert('Fill all fields!');
+    if (!name || !email || !password) return showMessage('Fill all fields!', 'error');
     register(email, password, name);
   });
 
@@ -346,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loginBtn?.addEventListener('click', () => {
     const email = document.querySelector('#loginModal input[placeholder="Email"]')?.value.trim();
     const password = document.querySelector('#loginModal input[placeholder="Password"]')?.value;
-    if (!email || !password) return alert('Fill all fields!');
+    if (!email || !password) return showMessage('Fill all fields!', 'error');
     login(email, password);
   });
 
