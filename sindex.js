@@ -39,7 +39,7 @@ function showMessage(text, type = 'info', timeout = 4000) {
   }, timeout);
 
   function hideToast(toastElem) {
-    toastElem.style.animation = 'slideOutLeft 0.3s forwards';
+    toastElem.style.animation = 'slideOutRight 0.3s forwards';
     toastElem.addEventListener('animationend', () => {
       toastElem.remove();
 
