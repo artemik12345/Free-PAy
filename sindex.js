@@ -1,17 +1,7 @@
-// Ініціалізація Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyC-grJlXshD89_MdLFm5oosejZDGR-gtgc",
-  authDomain: "freepay-app.firebaseapp.com",
-  projectId: "freepay-app",
-  storageBucket: "freepay-app.appspot.com",
-  messagingSenderId: "812063343387",
-  appId: "1:812063343387:web:83a5dd07d770cd1aca09be",
-  measurementId: "G-BM44C1C2JR"
-};
-firebase.initializeApp(firebaseConfig);
-
+// Ініціалізація Firebase (з HTML не дублюємо)
 const auth = firebase.auth();
 const db = firebase.firestore();
+const storage = firebase.storage();
 const provider = new firebase.auth.GoogleAuthProvider();
 
 // Копіювання номера картки
@@ -47,7 +37,7 @@ function closeModal(id) {
 }
 window.closeModal = closeModal;
 
-// Увімкнення/вимкнення кнопки налаштувань
+// Блокування кнопки налаштувань при відкритті модалки
 function disableSettingsIfModalOpen(isOpen) {
   const settingsBtn = document.querySelector('.open-settings');
   if (!settingsBtn) return;
@@ -72,7 +62,7 @@ function showUserAvatar(user) {
   avatarImg.title = user.displayName || user.email || '';
 }
 
-// Показати кнопки логіну
+// Показати кнопки логіну/реєстрації
 function showAuthButtons() {
   document.getElementById('authButtons').style.display = 'flex';
   document.getElementById('userAvatarContainer').style.display = 'none';
@@ -145,7 +135,7 @@ async function googleSignIn() {
 }
 window.googleSignIn = googleSignIn;
 
-// Оновлення профілю
+// Оновлення профілю (ім'я, email)
 async function updateUserProfile() {
   const user = auth.currentUser;
   if (!user) return alert('Not logged in!');
@@ -177,6 +167,33 @@ async function updateUserProfile() {
 }
 window.updateUserProfile = updateUserProfile;
 
+// Завантаження аватара у Firebase Storage і оновлення профілю
+document.getElementById('avatarInput')?.addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) return alert('Avatar must be less than 2MB');
+
+  const user = auth.currentUser;
+  if (!user) return alert('Not logged in!');
+
+  try {
+    const avatarRef = storage.ref(`avatars/${user.uid}/${file.name}`);
+    const snapshot = await avatarRef.put(file);
+
+    const downloadURL = await snapshot.ref.getDownloadURL();
+
+    await user.updateProfile({ photoURL: downloadURL });
+
+    // Оновлюємо аватар в UI (профіль та шапка)
+    document.getElementById('profileAvatar').src = downloadURL;
+    document.getElementById('userAvatar').src = downloadURL;
+
+    alert('Avatar updated successfully!');
+  } catch (error) {
+    alert('Failed to upload avatar: ' + error.message);
+  }
+});
+
 // Тема
 function setTheme(theme) {
   const root = document.documentElement;
@@ -196,7 +213,7 @@ function setTheme(theme) {
 }
 window.setTheme = setTheme;
 
-// Мова
+// Мова (проста реалізація)
 function setLanguage(lang) {
   alert('Language set to: ' + lang);
 }
@@ -204,7 +221,7 @@ window.setLanguage = setLanguage;
 
 // DOM завантажено
 document.addEventListener('DOMContentLoaded', () => {
-  // Клік по карті
+  // Клік по карті (фліп)
   document.querySelector('.card')?.addEventListener('click', function (e) {
     if (e.target.classList.contains('nam')) return;
     this.classList.toggle('flipped');
@@ -234,19 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Зміна аватара
+  // Клік по аватару в профілі — відкриття вибору файлу
   document.getElementById('profileAvatarContainer')?.addEventListener('click', () => {
     document.getElementById('avatarInput')?.click();
-  });
-  document.getElementById('avatarInput')?.addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) return alert('Avatar must be less than 2MB');
-    const reader = new FileReader();
-    reader.onload = ev => {
-      document.getElementById('profileAvatar').src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
   });
 
   // Показ/приховування пароля
@@ -265,13 +272,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Auth state
+  // Стан аутентифікації
   auth.onAuthStateChanged(user => {
     if (user) {
       showUserAvatar(user);
       document.getElementById('profileName').value = user.displayName || '';
       document.getElementById('profileEmail').value = user.email || '';
       document.getElementById('profileAvatar').src = user.photoURL || '/images/proff.png';
+      document.getElementById('userAvatar').src = user.photoURL || '/images/proff.png';
     } else {
       showAuthButtons();
     }
@@ -299,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Збереження профілю
   document.getElementById('saveProfileBtn')?.addEventListener('click', updateUserProfile);
 
-  // Google кнопки
+  // Кнопки Google входу
   document.querySelectorAll('.google-btn').forEach(btn => {
     btn.addEventListener('click', googleSignIn);
   });
