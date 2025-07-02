@@ -1,4 +1,16 @@
-// Ініціалізація Firebase (з HTML не дублюємо)
+// --- Ініціалізація Firebase ---
+const firebaseConfig = {
+  apiKey: "AIzaSyC-grJlXshD89_MdLFm5oosejZDGR-gtgc",
+  authDomain: "freepay-app.firebaseapp.com",
+  projectId: "freepay-app",
+  storageBucket: "freepay-app.appspot.com",
+  messagingSenderId: "812063343387",
+  appId: "1:812063343387:web:83a5dd07d770cd1aca09be",
+  measurementId: "G-BM44C1C2JR"
+};
+
+firebase.initializeApp(firebaseConfig);
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
