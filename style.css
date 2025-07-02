@@ -454,10 +454,6 @@ body .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{
     margin-left: 0px;
     margin-right: 0px;
   }
-  .batoni1{
-       margin-left: 0px;
-    margin-right: 0px;
-  }
 
  .card {
   background-color: #fff; /* або інший колір фону */
@@ -465,10 +461,8 @@ body .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{
   box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* для об'єму */
   border-radius: 15px;
   background-color: transparent;
-  margin-top: 50px auto;
-
+  margin-top: 50px;
 }
-
 
   .batoni {
     display: flex !important;
@@ -479,6 +473,8 @@ body .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{
 
   .batoni1 {
     width: 120px !important;
+      margin-left: 0px;
+    margin-right: 0px;
   }
 
   .balanss {
