@@ -142,6 +142,8 @@ async function googleSignIn() {
       });
     }
     alert(`Welcome, ${user.displayName}!`);
+    closeModal('loginModal');
+    showUserAvatar(user);
   } catch (error) {
     alert('Google sign-in error: ' + error.message);
   }
@@ -202,29 +204,31 @@ document.getElementById('avatarInput')?.addEventListener('change', async (e) => 
     console.log('Uploading avatar to:', storagePath);
 
     const snapshot = await avatarRef.put(file);
-
     const downloadURL = await snapshot.ref.getDownloadURL();
     console.log('Download URL:', downloadURL);
 
     // Оновлюємо photoURL у профілі користувача
     await user.updateProfile({ photoURL: downloadURL });
+
+    // Перезавантажуємо користувача, щоб оновити локальний стан
     await user.reload();
 
-    console.log('User photoURL updated');
+    // Переконуємось, що URL оновився
+    console.log('Updated user photoURL:', auth.currentUser.photoURL);
 
-    // Оновлюємо аватарки на сторінці з кеш-бастером
+    // Оновлюємо аватари в UI з кеш-бастером
     const cacheBuster = `?t=${Date.now()}`;
-    const profileAvatar = document.getElementById('profileAvatar');
-    const userAvatar = document.getElementById('userAvatar');
 
+    const profileAvatar = document.getElementById('profileAvatar');
     if (profileAvatar) {
-      profileAvatar.src = downloadURL + cacheBuster;
+      profileAvatar.src = auth.currentUser.photoURL + cacheBuster;
     } else {
       console.warn('Profile avatar element not found');
     }
 
+    const userAvatar = document.getElementById('userAvatar');
     if (userAvatar) {
-      userAvatar.src = downloadURL + cacheBuster;
+      userAvatar.src = auth.currentUser.photoURL + cacheBuster;
     } else {
       console.warn('User avatar element not found');
     }
