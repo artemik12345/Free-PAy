@@ -180,31 +180,44 @@ async function updateUserProfile() {
 window.updateUserProfile = updateUserProfile;
 
 // Завантаження аватара у Firebase Storage і оновлення профілю
-document.getElementById('avatarInput')?.addEventListener('change', async e => {
+document.getElementById('avatarInput')?.addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) return alert('Avatar must be less than 2MB');
+  if (file.size > 2 * 1024 * 1024) {
+    alert('Avatar must be less than 2MB');
+    return;
+  }
 
   const user = auth.currentUser;
-  if (!user) return alert('Not logged in!');
+  if (!user) {
+    alert('Not logged in!');
+    return;
+  }
 
   try {
     const avatarRef = storage.ref(`avatars/${user.uid}/${file.name}`);
-    const snapshot = await avatarRef.put(file);
+    console.log('Uploading avatar to:', avatarRef.fullPath);
 
+    const snapshot = await avatarRef.put(file);
     const downloadURL = await snapshot.ref.getDownloadURL();
 
-    await user.updateProfile({ photoURL: downloadURL });
+    console.log('Download URL:', downloadURL);
 
-    // Оновлюємо аватар в UI (профіль та шапка)
-    document.getElementById('profileAvatar').src = downloadURL;
-    document.getElementById('userAvatar').src = downloadURL;
+    await user.updateProfile({ photoURL: downloadURL });
+    console.log('User profile updated with new photoURL');
+
+    // Додаємо кеш-бастер, щоб оновити картинку в браузері
+    const cacheBuster = `?t=${new Date().getTime()}`;
+    document.getElementById('profileAvatar').src = downloadURL + cacheBuster;
+    document.getElementById('userAvatar').src = downloadURL + cacheBuster;
 
     alert('Avatar updated successfully!');
   } catch (error) {
+    console.error('Failed to upload avatar:', error);
     alert('Failed to upload avatar: ' + error.message);
   }
 });
+
 
 // Тема
 function setTheme(theme) {
