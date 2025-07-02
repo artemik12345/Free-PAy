@@ -1,4 +1,4 @@
-// Ініціалізація Firebase (твої налаштування)
+// Ініціалізація Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyC-grJlXshD89_MdLFm5oosejZDGR-gtgc",
   authDomain: "freepay-app.firebaseapp.com",
@@ -8,21 +8,11 @@ const firebaseConfig = {
   appId: "1:812063343387:web:83a5dd07d770cd1aca09be",
   measurementId: "G-BM44C1C2JR"
 };
-
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
 const db = firebase.firestore();
 const provider = new firebase.auth.GoogleAuthProvider();
-
-// Переворот картки (фліп) - правильна логіка
-document.querySelector('.card').addEventListener('click', function (e) {
-  if (e.target.classList.contains('nam')) {
-    // не перевертати карту при кліці на номер картки
-    return;
-  }
-  this.classList.toggle('flipped'); // додаємо клас flipped на .card
-});
 
 // Копіювання номера картки
 function copyCardNumber(event) {
@@ -34,7 +24,7 @@ function copyCardNumber(event) {
 }
 window.copyCardNumber = copyCardNumber;
 
-// Відкриття модального вікна
+// Відкриття модалки
 function openModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
@@ -44,7 +34,7 @@ function openModal(id) {
 }
 window.openModal = openModal;
 
-// Закриття модального вікна
+// Закриття модалки
 function closeModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
@@ -57,7 +47,7 @@ function closeModal(id) {
 }
 window.closeModal = closeModal;
 
-// Вмикання/вимикання кнопки налаштувань
+// Увімкнення/вимкнення кнопки налаштувань
 function disableSettingsIfModalOpen(isOpen) {
   const settingsBtn = document.querySelector('.open-settings');
   if (!settingsBtn) return;
@@ -70,30 +60,25 @@ function disableSettingsIfModalOpen(isOpen) {
   }
 }
 
-// Показати аватар і ховати кнопки логіну/реєстрації
+// Показати аватар користувача
 function showUserAvatar(user) {
-  const authButtons = document.getElementById('authButtons');
-  if (authButtons) authButtons.style.display = 'none';
+  document.getElementById('authButtons').style.display = 'none';
   const userAvatarContainer = document.getElementById('userAvatarContainer');
-  if (userAvatarContainer) userAvatarContainer.style.display = 'block';
+  userAvatarContainer.style.display = 'block';
 
   const avatarImg = document.getElementById('userAvatar');
-  if (avatarImg) {
-    avatarImg.src = user.photoURL || '/images/proff.png';
-    avatarImg.alt = user.displayName || user.email || '';
-    avatarImg.title = user.displayName || user.email || '';
-  }
+  avatarImg.src = user.photoURL || '/images/proff.png';
+  avatarImg.alt = user.displayName || user.email || '';
+  avatarImg.title = user.displayName || user.email || '';
 }
 
-// Показати кнопки логіну/реєстрації і сховати аватар
+// Показати кнопки логіну
 function showAuthButtons() {
-  const authButtons = document.getElementById('authButtons');
-  if (authButtons) authButtons.style.display = 'flex';
-  const userAvatarContainer = document.getElementById('userAvatarContainer');
-  if (userAvatarContainer) userAvatarContainer.style.display = 'none';
+  document.getElementById('authButtons').style.display = 'flex';
+  document.getElementById('userAvatarContainer').style.display = 'none';
 }
 
-// Реєстрація через Email/Password
+// Реєстрація
 async function register(email, password, name) {
   try {
     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
@@ -115,7 +100,7 @@ async function register(email, password, name) {
   }
 }
 
-// Логін через Email/Password
+// Логін
 async function login(email, password) {
   try {
     await auth.signInWithEmailAndPassword(email, password);
@@ -126,7 +111,7 @@ async function login(email, password) {
   }
 }
 
-// Вихід із акаунту
+// Вихід
 async function logout() {
   try {
     await auth.signOut();
@@ -138,7 +123,7 @@ async function logout() {
 }
 window.logout = logout;
 
-// Вхід через Google
+// Google-вхід
 async function googleSignIn() {
   try {
     const result = await auth.signInWithPopup(provider);
@@ -192,7 +177,7 @@ async function updateUserProfile() {
 }
 window.updateUserProfile = updateUserProfile;
 
-// Теми
+// Тема
 function setTheme(theme) {
   const root = document.documentElement;
   if (theme === 'light') {
@@ -217,8 +202,19 @@ function setLanguage(lang) {
 }
 window.setLanguage = setLanguage;
 
-// DOMContentLoaded
+// DOM завантажено
 document.addEventListener('DOMContentLoaded', () => {
+  // Клік по карті
+  document.querySelector('.card')?.addEventListener('click', function (e) {
+    if (e.target.classList.contains('nam')) return;
+    this.classList.toggle('flipped');
+  });
+
+  // Копіювання номера
+  document.body.addEventListener('click', e => {
+    if (e.target.classList.contains('nam')) copyCardNumber(e);
+  });
+
   // Відкриття модалок
   document.getElementById('btnlog')?.addEventListener('click', () => openModal('loginModal'));
   document.getElementById('btnsing')?.addEventListener('click', () => openModal('registerModal'));
@@ -238,21 +234,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Копіювання номера картки
-  document.body.addEventListener('click', e => {
-    if (e.target.classList.contains('nam')) copyCardNumber(e);
-  });
-
   // Зміна аватара
   document.getElementById('profileAvatarContainer')?.addEventListener('click', () => {
     document.getElementById('avatarInput')?.click();
   });
-
   document.getElementById('avatarInput')?.addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) return alert('Avatar must be less than 2MB');
-
     const reader = new FileReader();
     reader.onload = ev => {
       document.getElementById('profileAvatar').src = ev.target.result;
@@ -260,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsDataURL(file);
   });
 
-  // Показати/сховати пароль
+  // Показ/приховування пароля
   const togglePwdBtn = document.getElementById('togglePasswordBtn');
   if (togglePwdBtn) {
     togglePwdBtn.addEventListener('click', () => {
@@ -276,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Відслідковування стану аутентифікації
+  // Auth state
   auth.onAuthStateChanged(user => {
     if (user) {
       showUserAvatar(user);
@@ -288,38 +277,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Реєстрація по кнопці
+  // Реєстрація
   const registerBtn = document.querySelector('#registerModal button.modal-btn:not([id])');
-  if (registerBtn) {
-    registerBtn.addEventListener('click', () => {
-      const name = document.querySelector('#registerModal input[placeholder="Name"]')?.value.trim();
-      const email = document.querySelector('#registerModal input[placeholder="Email"]')?.value.trim();
-      const password = document.querySelector('#registerModal input[placeholder="Password"]')?.value;
-      if (!name || !email || !password) return alert('Fill all fields!');
-      register(email, password, name);
-    });
-  }
+  registerBtn?.addEventListener('click', () => {
+    const name = document.querySelector('#registerModal input[placeholder="Name"]')?.value.trim();
+    const email = document.querySelector('#registerModal input[placeholder="Email"]')?.value.trim();
+    const password = document.querySelector('#registerModal input[placeholder="Password"]')?.value;
+    if (!name || !email || !password) return alert('Fill all fields!');
+    register(email, password, name);
+  });
 
-  // Логін по кнопці
+  // Логін
   const loginBtn = document.querySelector('#loginModal button.modal-btn');
-  if (loginBtn) {
-    loginBtn.addEventListener('click', () => {
-      const email = document.querySelector('#loginModal input[placeholder="Email"]')?.value.trim();
-      const password = document.querySelector('#loginModal input[placeholder="Password"]')?.value;
-      if (!email || !password) return alert('Fill all fields!');
-      login(email, password);
-    });
-  }
+  loginBtn?.addEventListener('click', () => {
+    const email = document.querySelector('#loginModal input[placeholder="Email"]')?.value.trim();
+    const password = document.querySelector('#loginModal input[placeholder="Password"]')?.value;
+    if (!email || !password) return alert('Fill all fields!');
+    login(email, password);
+  });
 
   // Збереження профілю
-  const saveProfileBtn = document.getElementById('saveProfileBtn');
-  if (saveProfileBtn) {
-    saveProfileBtn.addEventListener('click', updateUserProfile);
-  }
+  document.getElementById('saveProfileBtn')?.addEventListener('click', updateUserProfile);
 
-  // Google Sign-In кнопки
+  // Google кнопки
   document.querySelectorAll('.google-btn').forEach(btn => {
     btn.addEventListener('click', googleSignIn);
   });
-
 });
