@@ -177,11 +177,14 @@ async function googleSignIn() {
         createdAt: new Date().toISOString()
       });
     }
+
     showMessage(`Welcome, ${user.displayName}!`, 'success');
+    closeModal('loginModal'); // ← Додано, щоб приховати логін-модалку
   } catch (error) {
     showMessage('Google sign-in error: ' + error.message, 'error');
   }
 }
+
 window.googleSignIn = googleSignIn;
 
 // Оновлення профілю (ім'я, email)
