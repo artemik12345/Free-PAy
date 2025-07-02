@@ -451,10 +451,15 @@ body .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{
     margin-bottom: 10px;
   }
 
-  .card {
-    width: 90%;
-    height: auto;
-  }
+ .card {
+  background-color: #fff; /* або інший колір фону */
+  min-height: 200px; /* або підходящий розмір */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* для об'єму */
+  border-radius: 15px;
+  background-color: transparent;
+
+}
+
 
   .batoni {
     display: flex !important;
@@ -483,11 +488,16 @@ body .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{
   }
 
   footer {
-    position: static !important;
-    height: auto;
-    top: auto;
-    padding: 20px 0;
-  }
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  /* Додай фон і відступи для гарного вигляду */
+
+  padding: 10px 0;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+  z-index: 100;
+}
 
   .em {
     font-size: 24px;
