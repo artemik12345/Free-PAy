@@ -499,8 +499,8 @@ body .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{
     border-radius: 20px;
   }
 }
-.messageContainer{
-    position: fixed;
+.messageContainer {
+  position: fixed;
   bottom: 20px;
   right: 20px;
   max-width: 300px;
@@ -510,9 +510,10 @@ body .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 0 10px black;
-  display: none;
+  display: none;   /* <- Ось тут */
   z-index: 9999;
 }
+
 @keyframes slideInLeft {
   from {
     opacity: 0;
