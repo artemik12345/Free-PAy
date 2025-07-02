@@ -271,19 +271,22 @@ function setTheme(theme) {
     root.style.setProperty('--card-color', '#fff');
     root.style.setProperty('--btn-color', '#ddd');
     root.style.setProperty('--btn-hover-color', '#bbb');
+    showMessage('In the process of development', 'info')
   } else {
     root.style.setProperty('--bg-color', '#2c283b');
     root.style.setProperty('--text-color', 'rgb(255,248,239)');
     root.style.setProperty('--card-color', '#1e1736');
     root.style.setProperty('--btn-color', '#3f3564');
     root.style.setProperty('--btn-hover-color', 'rgb(76,58,110)');
+    showMessage('In the process of development', 'info')
   }
 }
 window.setTheme = setTheme;
 
 // Мова (проста реалізація)
 function setLanguage(lang) {
-  showMessage('Language set to: ' + lang, 'info');
+  //showMessage('Language set to: ' + lang, 'info');
+  showMessage('In the process of development', 'info')
 }
 window.setLanguage = setLanguage;
 
