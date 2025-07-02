@@ -94,6 +94,7 @@ async function register(email, password, name) {
     });
 
     await user.updateProfile({ displayName: name });
+    await user.reload();
 
     alert('Registered successfully!');
     closeModal('registerModal');
@@ -163,6 +164,7 @@ async function updateUserProfile() {
     }
     if (newName !== user.displayName) {
       await user.updateProfile({ displayName: newName });
+      await user.reload();
     }
 
     await db.collection('users').doc(user.uid).update({
@@ -206,6 +208,8 @@ document.getElementById('avatarInput')?.addEventListener('change', async (e) => 
 
     // Оновлюємо photoURL у профілі користувача
     await user.updateProfile({ photoURL: downloadURL });
+    await user.reload();
+
     console.log('User photoURL updated');
 
     // Оновлюємо аватарки на сторінці з кеш-бастером
@@ -231,8 +235,6 @@ document.getElementById('avatarInput')?.addEventListener('change', async (e) => 
     alert('Failed to upload avatar: ' + error.message);
   }
 });
-
-
 
 // Тема
 function setTheme(theme) {
