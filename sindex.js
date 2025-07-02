@@ -1,4 +1,4 @@
-// Ініціалізація Firebase (твій конфіг)
+// --- Ініціалізація Firebase ---
 const firebaseConfig = {
   apiKey: "AIzaSyC-grJlXshD89_MdLFm5oosejZDGR-gtgc",
   authDomain: "freepay-app.firebaseapp.com",
@@ -8,6 +8,7 @@ const firebaseConfig = {
   appId: "1:812063343387:web:83a5dd07d770cd1aca09be",
   measurementId: "G-BM44C1C2JR"
 };
+
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
@@ -15,33 +16,31 @@ const db = firebase.firestore();
 const storage = firebase.storage();
 const provider = new firebase.auth.GoogleAuthProvider();
 
-// Функція показу повідомлень у контейнері
+// Функція показу повідомлень з анімацією (заміна alert)
 function showMessage(text, type = 'info', timeout = 4000) {
   const container = document.getElementById('messageContainer');
   if (!container) return;
-  container.textContent = text;
 
-  // Колір фону залежно від типу
-  container.style.backgroundColor = type === 'error' ? 'rgba(255, 60, 60, 0.9)' :
-    type === 'success' ? 'rgba(60, 255, 60, 0.9)' :
-    'rgba(0, 0, 0, 0.8)';
+  const toast = document.createElement('div');
+  toast.className = `toast-message ${type}`;
+  toast.textContent = text;
 
-  container.style.color = 'white';
-  container.style.padding = '12px 20px';
-  container.style.borderRadius = '8px';
-  container.style.position = 'fixed';
-  container.style.bottom = '20px';
-  container.style.right = '20px';
-  container.style.maxWidth = '300px';
-  container.style.fontFamily = 'Arial, sans-serif';
-  container.style.boxShadow = '0 0 10px black';
-  container.style.zIndex = '9999';
-  container.style.display = 'block';
+  toast.addEventListener('click', () => {
+    hideToast(toast);
+  });
 
-  clearTimeout(container._hideTimeout);
-  container._hideTimeout = setTimeout(() => {
-    container.style.display = 'none';
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    hideToast(toast);
   }, timeout);
+
+  function hideToast(toastElem) {
+    toastElem.style.animation = 'slideOutLeft 0.3s forwards';
+    toastElem.addEventListener('animationend', () => {
+      toastElem.remove();
+    });
+  }
 }
 
 // Копіювання номера картки
@@ -148,6 +147,7 @@ async function logout() {
     await auth.signOut();
     showAuthButtons();
     closeModal('profileModal');
+    showMessage('Logged out!', 'info');
   } catch (error) {
     showMessage('Logout error: ' + error.message, 'error');
   }
@@ -229,7 +229,6 @@ document.getElementById('avatarInput')?.addEventListener('change', async (e) => 
     const avatarRef = storage.ref(storagePath);
 
     const snapshot = await avatarRef.put(file);
-
     const downloadURL = await snapshot.ref.getDownloadURL();
 
     // Оновлюємо photoURL у профілі користувача
@@ -244,6 +243,7 @@ document.getElementById('avatarInput')?.addEventListener('change', async (e) => 
     if (profileAvatar) {
       profileAvatar.src = downloadURL + cacheBuster;
     }
+
     if (userAvatar) {
       userAvatar.src = downloadURL + cacheBuster;
     }
