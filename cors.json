@@ -1,0 +1,7 @@
+[
+  {
+    "origin": ["https://freepayizi.netlify.app"],
+    "method": ["GET", "POST", "PUT", "DELETE"],
+    "maxAgeSeconds": 3600
+  }
+]
