@@ -9,11 +9,9 @@
 }
 *:focus {
   outline: none !important;
-  box-shadow: none !important;
 }
 *:active {
   outline: none !important;
-  box-shadow: none !important;
 }
 button, input, select, textarea {
   -webkit-tap-highlight-color: transparent;
