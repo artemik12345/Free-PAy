@@ -464,6 +464,10 @@ body .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{
     align-items: center;
   }
 
+  .FreeMan, .manyy {
+  display: none !important;
+}
+
   .logoo {
     font-size: 28px;
     margin-top: 10px;
