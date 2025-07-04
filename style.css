@@ -11,6 +11,14 @@
   outline: none !important;
   box-shadow: none !important;
 }
+*:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+button, input, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
 
 body {
   background-color: #2c283b;
