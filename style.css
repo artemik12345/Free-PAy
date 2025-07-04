@@ -56,9 +56,11 @@ header {
   top: 100px;
  position: fixed;
  left: -100px;
+    pointer-events: none;
 }
 .manyy{
    position: fixed;
+    pointer-events: none;
 }
 /* Main Content */
 main {
