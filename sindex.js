@@ -16,12 +16,90 @@ const db = firebase.firestore();
 const storage = firebase.storage();
 const provider = new firebase.auth.GoogleAuthProvider();
 
+// --- Cloudinary конфіг ---
+const CLOUD_NAME = "dslmbyqys";
+const UPLOAD_PRESET = "freepay";
+
+// Елементи аватара
+const avatarInput = document.getElementById("avatarInput");
+const profileAvatar = document.getElementById("profileAvatar");
+const profileAvatarContainer = document.getElementById("profileAvatarContainer");
+const avatarOverlay = document.getElementById("avatarOverlay");
+
+// Показати поточний аватар користувача
+function loadCurrentAvatar() {
+  const user = auth.currentUser;
+  if (user && user.photoURL) {
+    profileAvatar.src = user.photoURL;
+  }
+}
+
+// Наведи курсор — покажи напис
+profileAvatarContainer?.addEventListener("mouseenter", () => {
+  avatarOverlay.style.opacity = 1;
+});
+profileAvatarContainer?.addEventListener("mouseleave", () => {
+  avatarOverlay.style.opacity = 0;
+});
+
+// Клік по аватару — відкриває файл
+profileAvatarContainer?.addEventListener("click", () => {
+  avatarInput?.click();
+});
+
+// Обробник вибору файлу аватара (завантаження на Cloudinary)
+avatarInput?.addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (file.size > 2 * 1024 * 1024) { // 2MB обмеження
+    showMessage('Avatar must be less than 2MB', 'error');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", UPLOAD_PRESET);
+
+  try {
+    showMessage("Завантаження аватара...", "info");
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || "Upload failed");
+
+    const avatarUrl = data.secure_url;
+
+    // Оновлення Firebase профілю
+    if (auth.currentUser) {
+      await auth.currentUser.updateProfile({
+        photoURL: avatarUrl,
+      });
+      await auth.currentUser.reload();
+    }
+
+    // Оновлення аватара на сторінці
+    profileAvatar.src = avatarUrl;
+
+    // За бажанням: зберегти в Firestore
+    // await db.collection("users").doc(auth.currentUser.uid).set({ avatar: avatarUrl }, { merge: true });
+
+    showMessage("Аватар оновлено!", "success");
+  } catch (err) {
+    console.error("Avatar upload error:", err);
+    showMessage("Не вдалося оновити аватар.", "error");
+  }
+});
+
 // Функція показу повідомлень з анімацією (заміна alert)
 function showMessage(text, type = 'info', timeout = 4000) {
   const container = document.getElementById('messageContainer');
   if (!container) return;
 
-  // Показати контейнер
   container.style.display = 'block';
 
   const toast = document.createElement('div');
@@ -42,8 +120,6 @@ function showMessage(text, type = 'info', timeout = 4000) {
     toastElem.style.animation = 'slideOutRight 0.3s forwards';
     toastElem.addEventListener('animationend', () => {
       toastElem.remove();
-
-      // Якщо після видалення toast-ів контейнер порожній — сховати контейнер
       if (container.children.length === 0) {
         container.style.display = 'none';
       }
@@ -179,12 +255,11 @@ async function googleSignIn() {
     }
 
     showMessage(`Welcome, ${user.displayName}!`, 'success');
-    closeModal('loginModal'); // ← Додано, щоб приховати логін-модалку
+    closeModal('loginModal');
   } catch (error) {
     showMessage('Google sign-in error: ' + error.message, 'error');
   }
 }
-
 window.googleSignIn = googleSignIn;
 
 // Оновлення профілю (ім'я, email)
@@ -220,51 +295,6 @@ async function updateUserProfile() {
 }
 window.updateUserProfile = updateUserProfile;
 
-// Завантаження аватара у Firebase Storage і оновлення профілю
-document.getElementById('avatarInput')?.addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (file.size > 2 * 1024 * 1024) {
-    showMessage('Avatar must be less than 2MB', 'error');
-    return;
-  }
-
-  const user = auth.currentUser;
-  if (!user) {
-    showMessage('Not logged in!', 'error');
-    return;
-  }
-
-  try {
-    const storagePath = `avatars/${user.uid}/${file.name}`;
-    const avatarRef = storage.ref(storagePath);
-
-    const snapshot = await avatarRef.put(file);
-    const downloadURL = await snapshot.ref.getDownloadURL();
-
-    // Оновлюємо photoURL у профілі користувача
-    await user.updateProfile({ photoURL: downloadURL });
-    await user.reload();
-
-    // Оновлюємо аватарки на сторінці з кеш-бастером
-    const cacheBuster = `?t=${Date.now()}`;
-    const profileAvatar = document.getElementById('profileAvatar');
-    const userAvatar = document.getElementById('userAvatar');
-
-    if (profileAvatar) {
-      profileAvatar.src = downloadURL + cacheBuster;
-    }
-
-    if (userAvatar) {
-      userAvatar.src = downloadURL + cacheBuster;
-    }
-
-    showMessage('Avatar updated successfully!', 'success');
-  } catch (error) {
-    showMessage('Failed to upload avatar: ' + error.message, 'error');
-  }
-});
-
 // Тема
 function setTheme(theme) {
   const root = document.documentElement;
@@ -274,14 +304,14 @@ function setTheme(theme) {
     root.style.setProperty('--card-color', '#fff');
     root.style.setProperty('--btn-color', '#ddd');
     root.style.setProperty('--btn-hover-color', '#bbb');
-    showMessage('In the process of development', 'info')
+    showMessage('In the process of development', 'info');
   } else {
     root.style.setProperty('--bg-color', '#2c283b');
     root.style.setProperty('--text-color', 'rgb(255,248,239)');
     root.style.setProperty('--card-color', '#1e1736');
     root.style.setProperty('--btn-color', '#3f3564');
     root.style.setProperty('--btn-hover-color', 'rgb(76,58,110)');
-    showMessage('In the process of development', 'info')
+    showMessage('In the process of development', 'info');
   }
 }
 window.setTheme = setTheme;
@@ -289,7 +319,7 @@ window.setTheme = setTheme;
 // Мова (проста реалізація)
 function setLanguage(lang) {
   //showMessage('Language set to: ' + lang, 'info');
-  showMessage('In the process of development', 'info')
+  showMessage('In the process of development', 'info');
 }
 window.setLanguage = setLanguage;
 
@@ -385,4 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.google-btn').forEach(btn => {
     btn.addEventListener('click', googleSignIn);
   });
+
+  // Завантаження поточного аватара при старті
+  loadCurrentAvatar();
 });
