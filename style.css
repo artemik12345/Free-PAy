@@ -544,7 +544,7 @@ body .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{
   to {
     opacity: 1;
     transform: translateX(0);
-     box-shadow: none;
+    
   }
 }
 
@@ -556,7 +556,7 @@ body .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{
   to {
     opacity: 0;
     transform: translateX(100%);
-     box-shadow: none;
+    
   }
 }
 
