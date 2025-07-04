@@ -7,6 +7,10 @@
   font-family: "Inter", sans-serif;
   color: rgb(255, 248, 239);
 }
+*:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
 
 body {
   background-color: #2c283b;
