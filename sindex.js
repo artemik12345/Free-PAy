@@ -42,11 +42,6 @@ profileAvatarContainer?.addEventListener("mouseleave", () => {
   avatarOverlay.style.opacity = 0;
 });
 
-// Клік по аватару — відкриває файл
-profileAvatarContainer?.addEventListener("click", () => {
-  avatarInput?.click();
-});
-
 // Обробник вибору файлу аватара (завантаження на Cloudinary)
 avatarInput?.addEventListener("change", async (e) => {
   const file = e.target.files[0];
