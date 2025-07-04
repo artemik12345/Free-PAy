@@ -474,11 +474,21 @@ body .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{
     gap: 10px;
     align-items: center;
   }
-
-  .FreeMan, .manyy {
+.logoo{
+  padding-top: 10px;
+}
+.divv{
+  margin-left: 105px;
+}
+  .FreeMan {
   display: none !important;
 }
-
+.manyy{
+  bottom: -100px;
+  right: -40px;
+  width: 400px;
+  height: 400px;
+}
   .logoo {
     font-size: 28px;
     margin-top: 10px;
