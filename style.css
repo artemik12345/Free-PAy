@@ -32,6 +32,21 @@ body {
   width: 64px;
   height: 60px;
 }
+.FreeMan {
+  width: 700px;
+  height: 700px;
+  top: 100px;
+  position: fixed;
+  left: -100px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.manyy {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1;
+}
 
 /* Header */
 header {
