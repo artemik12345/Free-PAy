@@ -57,7 +57,7 @@ header {
  position: fixed;
  left: -100px;
     pointer-events: none;
-  z-index:1;
+  z-index:999;
 }
 .manyy{
    position: fixed;
