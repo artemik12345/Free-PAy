@@ -53,9 +53,9 @@ header {
 .FreeMan{
   width: 700px;
   height: 700px;
-  top: 100px;
+  top: 100px;   
  position: fixed;
- left: -100px;
+ left: -120px; /*-100*/
     pointer-events: none;
 }
 .manyy{
