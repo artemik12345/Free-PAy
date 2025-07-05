@@ -55,7 +55,7 @@ header {
   height: 700px;
   top: 100px;   
  position: fixed;
- left: -120px; /*-100*/
+ left: -140px; /*-100*/
     pointer-events: none;
 }
 .manyy{
