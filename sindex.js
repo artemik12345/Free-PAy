@@ -156,52 +156,39 @@ function closeModal(id) {
 window.closeModal = closeModal;
 
 async function updateExchangeRates() {
-  const usdElement = document.getElementById('usdRate');
-  const eurElement = document.getElementById('eurRate');
+  const usdEl = document.getElementById('usdRate');
+  const eurEl = document.getElementById('eurRate');
+
+  usdEl.textContent = eurEl.textContent = '...';
 
   try {
-    usdElement.textContent = '...';
-    eurElement.textContent = '...';
-
     const data = await fetchWithRetry('https://api.monobank.ua/bank/currency');
+    const usd = data.find(d => d.currencyCodeA === 840 && d.currencyCodeB === 980);
+    const eur = data.find(d => d.currencyCodeA === 978 && d.currencyCodeB === 980);
+    if (!usd || !eur) throw new Error('No currency data');
 
-    const usd = data.find(item => item.currencyCodeA === 840 && item.currencyCodeB === 980);
-    const eur = data.find(item => item.currencyCodeA === 978 && item.currencyCodeB === 980);
+    usdEl.textContent = usd.rateSell.toFixed(2) + '₴';
+    eurEl.textContent = eur.rateSell.toFixed(2) + '₴';
 
-    if (!usd || !eur) {
-      throw new Error("Currency data not found");
-    }
+    localStorage.setItem('usdRate', usdEl.textContent);
+    localStorage.setItem('eurRate', eurEl.textContent);
 
-    const usdRate = usd.rateSell.toFixed(2);
-    const eurRate = eur.rateSell.toFixed(2);
-
-    usdElement.textContent = usdRate + "₴";
-    eurElement.textContent = eurRate + "₴";
-
-    // Збереження в localStorage
-    localStorage.setItem('usdRate', usdRate);
-    localStorage.setItem('eurRate', eurRate);
-
-    animateRateUpdate(usdElement);
-    animateRateUpdate(eurElement);
-  } catch (error) {
-    console.error("Monobank exchange rate error:", error);
-
-    // Витягнути кешовані курси
+  } catch {
     const cachedUsd = localStorage.getItem('usdRate');
     const cachedEur = localStorage.getItem('eurRate');
 
     if (cachedUsd && cachedEur) {
-      usdElement.textContent = cachedUsd + "₴";
-      eurElement.textContent = cachedEur + "₴";
-      showMessage("Free/Pay API is unavailable. Cache used.", "info");
+      usdEl.textContent = cachedUsd;
+      eurEl.textContent = cachedEur;
+      showMessage('Monobank API недоступний. Використано кеш.', 'info');
     } else {
-      usdElement.textContent = "~38.50₴";
-      eurElement.textContent = "~41.20₴";
-      showMessage("Free/Pay API is unavailable. No data available.", "error");
+      usdEl.textContent = '~38.50₴';
+      eurEl.textContent = '~41.20₴';
+      showMessage('Monobank API недоступний. Дані відсутні, показано запасні курси.', 'error');
     }
   }
 }
+
 
 
 
