@@ -161,7 +161,6 @@ async function updateExchangeRates() {
     document.getElementById('usdRate').textContent = '...';
     document.getElementById('eurRate').textContent = '...';
     
-    // Використовуємо сучасний метод fetch з обробкою помилок
     const response = await fetch('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=11');
     
     if (!response.ok) {
@@ -169,8 +168,6 @@ async function updateExchangeRates() {
     }
     
     const data = await response.json();
-    
-    // Знаходимо USD та EUR
     const usd = data.find(item => item.ccy === "USD");
     const eur = data.find(item => item.ccy === "EUR");
     
@@ -178,20 +175,38 @@ async function updateExchangeRates() {
       throw new Error('Currency data not found in response');
     }
     
-    // Оновлюємо значення на сторінці
-    document.getElementById('usdRate').textContent = parseFloat(usd.sale).toFixed(2) + "₴";
-    document.getElementById('eurRate').textContent = parseFloat(eur.sale).toFixed(2) + "₴";
+    // Оновлюємо значення
+    const usdElement = document.getElementById('usdRate');
+    const eurElement = document.getElementById('eurRate');
+    
+    usdElement.textContent = parseFloat(usd.sale).toFixed(2) + "₴";
+    eurElement.textContent = parseFloat(eur.sale).toFixed(2) + "₴";
+    
+    // Додаємо анімацію оновлення
+    animateRateUpdate(usdElement);
+    animateRateUpdate(eurElement);
     
   } catch (error) {
     console.error("Error fetching exchange rates:", error);
     
-    // Встановлюємо значення за замовчуванням у разі помилки
-    document.getElementById('usdRate').textContent = "~38.50₴";
-    document.getElementById('eurRate').textContent = "~41.20₴";
+    const usdElement = document.getElementById('usdRate');
+    const eurElement = document.getElementById('eurRate');
     
-    // Показуємо повідомлення про помилку
+    usdElement.textContent = "~38.50₴";
+    eurElement.textContent = "~41.20₴";
+    
+    // Також можна додати анімацію для значень за замовчуванням
+    animateRateUpdate(usdElement);
+    animateRateUpdate(eurElement);
+    
     showMessage('Could not update rates. Using default values.', 'error');
   }
+}
+
+// Функція для анімації оновлення
+function animateRateUpdate(element) {
+  element.classList.add('updated');
+  setTimeout(() => element.classList.remove('updated'), 300);
 }
 
 // Блокування кнопки налаштувань при відкритті модалки
