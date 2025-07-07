@@ -163,33 +163,48 @@ async function updateExchangeRates() {
     usdElement.textContent = '...';
     eurElement.textContent = '...';
 
-    const response = await fetch('https://api.monobank.ua/bank/currency');
+    const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+    const apiUrl = 'https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=11';
+
+    // Додаємо антикеш-параметр
+    const finalUrl = proxyUrl + apiUrl + `&nocache=${Date.now()}`;
+
+    const response = await fetch(finalUrl, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
 
     if (!response.ok) {
-      throw new Error(`Monobank API error: ${response.status}`);
+      throw new Error(`API request failed with status ${response.status}`);
     }
 
     const data = await response.json();
 
-    const usd = data.find(item => item.currencyCodeA === 840 && item.currencyCodeB === 980);
-    const eur = data.find(item => item.currencyCodeA === 978 && item.currencyCodeB === 980);
+    const usd = data.find(item => item.ccy === "USD" || item.currencyCodeA === 840);
+    const eur = data.find(item => item.ccy === "EUR" || item.currencyCodeA === 978);
 
     if (!usd || !eur) {
-      throw new Error("Currency data not found");
+      throw new Error('Required currency data not found');
     }
 
-    usdElement.textContent = usd.rateSell.toFixed(2) + "₴";
-    eurElement.textContent = eur.rateSell.toFixed(2) + "₴";
+    usdElement.textContent = "~" + (usd.sale || usd.rateSell).toFixed(2) + "₴";
+    eurElement.textContent = "~" + (eur.sale || eur.rateSell).toFixed(2) + "₴";
 
     animateRateUpdate(usdElement);
     animateRateUpdate(eurElement);
   } catch (error) {
-    console.error("Monobank exchange rate error:", error);
+    console.error("Exchange rate error:", error);
     usdElement.textContent = "~38.50₴";
     eurElement.textContent = "~41.20₴";
-    showMessage("Monobank API недоступний. Використано кеш.", "info");
+
+    if (!usdElement.dataset.firstLoad) {
+      showMessage('Exchange rates not updated. Using cached values.', 'info');
+    }
+    usdElement.dataset.firstLoad = "true";
   }
 }
+
 
 
 // Функція для анімації оновлення
