@@ -163,13 +163,7 @@ async function updateExchangeRates() {
     usdElement.textContent = '...';
     eurElement.textContent = '...';
 
-    const response = await fetch('https://api.monobank.ua/bank/currency');
-
-    if (!response.ok) {
-      throw new Error(`Monobank API error: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = await fetchWithRetry('https://api.monobank.ua/bank/currency');
 
     const usd = data.find(item => item.currencyCodeA === 840 && item.currencyCodeB === 980);
     const eur = data.find(item => item.currencyCodeA === 978 && item.currencyCodeB === 980);
@@ -178,18 +172,37 @@ async function updateExchangeRates() {
       throw new Error("Currency data not found");
     }
 
-    usdElement.textContent = usd.rateSell.toFixed(2) + "₴";
-    eurElement.textContent = eur.rateSell.toFixed(2) + "₴";
+    const usdRate = usd.rateSell.toFixed(2);
+    const eurRate = eur.rateSell.toFixed(2);
+
+    usdElement.textContent = usdRate + "₴";
+    eurElement.textContent = eurRate + "₴";
+
+    // Збереження в localStorage
+    localStorage.setItem('usdRate', usdRate);
+    localStorage.setItem('eurRate', eurRate);
 
     animateRateUpdate(usdElement);
     animateRateUpdate(eurElement);
   } catch (error) {
     console.error("Monobank exchange rate error:", error);
-    usdElement.textContent = "~38.50₴";
-    eurElement.textContent = "~41.20₴";
-    showMessage("Monobank API недоступний. Використано кеш.", "info");
+
+    // Витягнути кешовані курси
+    const cachedUsd = localStorage.getItem('usdRate');
+    const cachedEur = localStorage.getItem('eurRate');
+
+    if (cachedUsd && cachedEur) {
+      usdElement.textContent = cachedUsd + "₴";
+      eurElement.textContent = cachedEur + "₴";
+      showMessage("Free/Pay API is unavailable. Cache used.", "info");
+    } else {
+      usdElement.textContent = "~38.50₴";
+      eurElement.textContent = "~41.20₴";
+      showMessage("Free/Pay API is unavailable. No data available.", "error");
+    }
   }
 }
+
 
 
 // Функція для анімації оновлення
