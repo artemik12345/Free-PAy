@@ -139,8 +139,12 @@ function openModal(id) {
   modal.style.display = 'flex';
   modal.classList.remove('hide');
   disableSettingsIfModalOpen(true);
+
+  // Якщо відкривається модалка надсилання — оновлюємо курс
+  if (id === 'sendModal') {
+    updateExchangeRates();
+  }
 }
-window.openModal = openModal;
 
 // Закриття модалки
 function closeModal(id) {
@@ -395,12 +399,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('logoutBtn')?.addEventListener('click', logout);
   document.getElementById('userAvatar')?.addEventListener('click', () => openModal('profileModal'));
   document.querySelector('.open-settings')?.addEventListener('click', () => openModal('settingsModal'));
+  document.getElementById('btn1')?.addEventListener('click', () => openModal('sendModal'));
   document.getElementById('btn2')?.addEventListener('click', () => openModal('historyModal'));
   document.getElementById('btn3')?.addEventListener('click', () => location.reload());
   document.querySelector('.btnnn')?.addEventListener('click', () => openModal('newCardModal'));
- document.getElementById('btn1')?.addEventListener('click', () => {
-  openModal('sendModal');
-  updateExchangeRates();
 });
 
 });
