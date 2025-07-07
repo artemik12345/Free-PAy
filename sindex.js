@@ -156,52 +156,41 @@ function closeModal(id) {
 window.closeModal = closeModal;
 
 async function updateExchangeRates() {
+  const usdElement = document.getElementById('usdRate');
+  const eurElement = document.getElementById('eurRate');
+
   try {
-    // Додаємо індикатор завантаження
-    document.getElementById('usdRate').textContent = '...';
-    document.getElementById('eurRate').textContent = '...';
-    
-    const response = await fetch('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=11');
-    
+    usdElement.textContent = '...';
+    eurElement.textContent = '...';
+
+    const response = await fetch('https://api.monobank.ua/bank/currency');
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`Monobank API error: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    const usd = data.find(item => item.ccy === "USD");
-    const eur = data.find(item => item.ccy === "EUR");
-    
+
+    const usd = data.find(item => item.currencyCodeA === 840 && item.currencyCodeB === 980);
+    const eur = data.find(item => item.currencyCodeA === 978 && item.currencyCodeB === 980);
+
     if (!usd || !eur) {
-      throw new Error('Currency data not found in response');
+      throw new Error("Currency data not found");
     }
-    
-    // Оновлюємо значення
-    const usdElement = document.getElementById('usdRate');
-    const eurElement = document.getElementById('eurRate');
-    
-    usdElement.textContent = parseFloat(usd.sale).toFixed(2) + "₴";
-    eurElement.textContent = parseFloat(eur.sale).toFixed(2) + "₴";
-    
-    // Додаємо анімацію оновлення
+
+    usdElement.textContent = usd.rateSell.toFixed(2) + "₴";
+    eurElement.textContent = eur.rateSell.toFixed(2) + "₴";
+
     animateRateUpdate(usdElement);
     animateRateUpdate(eurElement);
-    
   } catch (error) {
-    console.error("Error fetching exchange rates:", error);
-    
-    const usdElement = document.getElementById('usdRate');
-    const eurElement = document.getElementById('eurRate');
-    
+    console.error("Monobank exchange rate error:", error);
     usdElement.textContent = "~38.50₴";
     eurElement.textContent = "~41.20₴";
-    
-    // Також можна додати анімацію для значень за замовчуванням
-    animateRateUpdate(usdElement);
-    animateRateUpdate(eurElement);
-    
-    showMessage('Could not update rates. Using default values.', 'error');
+    showMessage("Monobank API недоступний. Використано кеш.", "info");
   }
 }
+
 
 // Функція для анімації оновлення
 function animateRateUpdate(element) {
