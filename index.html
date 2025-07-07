@@ -157,21 +157,26 @@
         </div>
       </div>
 
-      <!-- Send Modal -->
-       <div class="modal" id="sendModal">
-        <div class="modal-content" style="position: relative;">
-          <div class="exchange-rates">
-            <div><img src="usd-icon.png" alt="USD" class="currency-icon" /> <span id="usdRate">**.**₴</span></div>
-            <div><img src="eur-icon.png" alt="EUR" class="currency-icon" /> <span id="eurRate">**.**₴</span></div>
-          </div>
-
-          <h2>Send Money</h2>
-          <input type="text" placeholder="Number cart" class="modal-input" />
-          <input type="number" placeholder="sum(€)" class="modal-input" />
-          <button class="modal-btn" onclick="showMessage('In the process of development', 'info')">Send</button>
-          <button class="modal-close">×</button>
-        </div>
+          <!-- Send Modal -->
+    <div class="modal" id="sendModal">
+  <div class="modal-content" style="position: relative;">
+    <div class="exchange-rates">
+      <div>
+        <img src="/images/usd-icon.svg" alt="USD" class="currency-icon" />
+        <span id="usdRate">--.--₴</span>
       </div>
+      <div>
+        <img src="/images/eur-icon.svg" alt="EUR" class="currency-icon" />
+        <span id="eurRate">--.--₴</span>
+      </div>
+    </div>
+    <h2>Send Money</h2>
+    <input type="text" placeholder="Card number" class="modal-input" />
+    <input type="number" placeholder="Amount (€)" class="modal-input" />
+    <button class="modal-btn" onclick="showMessage('In the process of development', 'info')">Send</button>
+    <button class="modal-close">×</button>
+  </div>
+</div>
 
 
       <!-- History Modal -->
