@@ -139,11 +139,8 @@ function openModal(id) {
   modal.style.display = 'flex';
   modal.classList.remove('hide');
   disableSettingsIfModalOpen(true);
-
-  if (id === 'sendModal') {
-    updateExchangeRates();
-  }
 }
+window.openModal = openModal;
 
 // Закриття модалки
 function closeModal(id) {
@@ -166,48 +163,33 @@ async function updateExchangeRates() {
     usdElement.textContent = '...';
     eurElement.textContent = '...';
 
-    const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-    const apiUrl = 'https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=11';
-
-    // Додаємо антикеш-параметр
-    const finalUrl = proxyUrl + apiUrl + `&nocache=${Date.now()}`;
-
-    const response = await fetch(finalUrl, {
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest'
-      }
-    });
+    const response = await fetch('https://api.monobank.ua/bank/currency');
 
     if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
+      throw new Error(`Monobank API error: ${response.status}`);
     }
 
     const data = await response.json();
 
-    const usd = data.find(item => item.ccy === "USD" || item.currencyCodeA === 840);
-    const eur = data.find(item => item.ccy === "EUR" || item.currencyCodeA === 978);
+    const usd = data.find(item => item.currencyCodeA === 840 && item.currencyCodeB === 980);
+    const eur = data.find(item => item.currencyCodeA === 978 && item.currencyCodeB === 980);
 
     if (!usd || !eur) {
-      throw new Error('Required currency data not found');
+      throw new Error("Currency data not found");
     }
 
-    usdElement.textContent = "~" + (usd.sale || usd.rateSell).toFixed(2) + "₴";
-    eurElement.textContent = "~" + (eur.sale || eur.rateSell).toFixed(2) + "₴";
+    usdElement.textContent = usd.rateSell.toFixed(2) + "₴";
+    eurElement.textContent = eur.rateSell.toFixed(2) + "₴";
 
     animateRateUpdate(usdElement);
     animateRateUpdate(eurElement);
   } catch (error) {
-    console.error("Exchange rate error:", error);
+    console.error("Monobank exchange rate error:", error);
     usdElement.textContent = "~38.50₴";
     eurElement.textContent = "~41.20₴";
-
-    if (!usdElement.dataset.firstLoad) {
-      showMessage('Exchange rates not updated. Using cached values.', 'info');
-    }
-    usdElement.dataset.firstLoad = "true";
+    showMessage("Monobank API недоступний. Використано кеш.", "info");
   }
 }
-
 
 
 // Функція для анімації оновлення
@@ -387,6 +369,12 @@ document.addEventListener('DOMContentLoaded', () => {
     this.classList.toggle('flipped');
   });
 
+  document.getElementById("btn1").addEventListener("click", () => {
+    document.getElementById("sendModal").style.display = "flex";
+    updateExchangeRates();
+  });
+
+
   // Копіювання номера
   document.body.addEventListener('click', e => {
     if (e.target.classList.contains('nam')) copyCardNumber(e);
@@ -402,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn2')?.addEventListener('click', () => openModal('historyModal'));
   document.getElementById('btn3')?.addEventListener('click', () => location.reload());
   document.querySelector('.btnnn')?.addEventListener('click', () => openModal('newCardModal'));
-});
+
 
   // Закриття модалок
   document.querySelectorAll('.modal-close').forEach(btn => {
@@ -475,4 +463,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Завантаження поточного аватара при старті
   loadCurrentAvatar();
-});
+}); 
