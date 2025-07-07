@@ -140,7 +140,6 @@ function openModal(id) {
   modal.classList.remove('hide');
   disableSettingsIfModalOpen(true);
 
-  // Якщо відкривається модалка надсилання — оновлюємо курс
   if (id === 'sendModal') {
     updateExchangeRates();
   }
