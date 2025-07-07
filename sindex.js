@@ -404,9 +404,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelector('.btnnn')?.addEventListener('click', () => openModal('newCardModal'));
 });
 
-});
-
-
   // Закриття модалок
   document.querySelectorAll('.modal-close').forEach(btn => {
     btn.addEventListener('click', () => {
