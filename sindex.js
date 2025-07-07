@@ -155,6 +155,45 @@ function closeModal(id) {
 }
 window.closeModal = closeModal;
 
+async function updateExchangeRates() {
+  try {
+    // Додаємо індикатор завантаження
+    document.getElementById('usdRate').textContent = '...';
+    document.getElementById('eurRate').textContent = '...';
+    
+    // Використовуємо сучасний метод fetch з обробкою помилок
+    const response = await fetch('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=11');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Знаходимо USD та EUR
+    const usd = data.find(item => item.ccy === "USD");
+    const eur = data.find(item => item.ccy === "EUR");
+    
+    if (!usd || !eur) {
+      throw new Error('Currency data not found in response');
+    }
+    
+    // Оновлюємо значення на сторінці
+    document.getElementById('usdRate').textContent = parseFloat(usd.sale).toFixed(2) + "₴";
+    document.getElementById('eurRate').textContent = parseFloat(eur.sale).toFixed(2) + "₴";
+    
+  } catch (error) {
+    console.error("Error fetching exchange rates:", error);
+    
+    // Встановлюємо значення за замовчуванням у разі помилки
+    document.getElementById('usdRate').textContent = "~38.50₴";
+    document.getElementById('eurRate').textContent = "~41.20₴";
+    
+    // Показуємо повідомлення про помилку
+    showMessage('Could not update rates. Using default values.', 'error');
+  }
+}
+
 // Блокування кнопки налаштувань при відкритті модалки
 function disableSettingsIfModalOpen(isOpen) {
   const settingsBtn = document.querySelector('.open-settings');
@@ -341,6 +380,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn2')?.addEventListener('click', () => openModal('historyModal'));
   document.getElementById('btn3')?.addEventListener('click', () => location.reload());
   document.querySelector('.btnnn')?.addEventListener('click', () => openModal('newCardModal'));
+  document.getElementById('btn1')?.addEventListener('click', () => {
+  openModal('sendModal');
+  updateExchangeRates();
+});
+
 
   // Закриття модалок
   document.querySelectorAll('.modal-close').forEach(btn => {
