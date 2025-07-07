@@ -336,20 +336,31 @@ main {
 
 #sendModal .exchange-rates {
   position: absolute;
-  bottom: 100%;
+  bottom: calc(100% + 10px); /* Додаємо відступ від модалки */
   left: 50%;
-  width: 100%;
-  max-width: 200px;
   transform: translateX(-50%);
-  margin-bottom: 12px;
   background-color: #2b1a39;
   color: #fff;
-  padding: 6px 14px;
+  padding: 8px 16px;
   border-radius: 14px;
   font-size: 14px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   z-index: 10000;
-  white-space: nowrap;
+  display: flex;
+  gap: 15px; /* Відступ між валютами */
+  align-items: center;
+}
+
+#sendModal .exchange-rates div {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+#sendModal .currency-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 #sendModal .exchange-rates span {
   transition: all 0.3s ease;
@@ -359,6 +370,7 @@ main {
   color: #4CAF50;
   transform: scale(1.05);
 }
+
 @keyframes slideUp {
   from {
     transform: translateY(100%);
