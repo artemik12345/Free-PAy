@@ -16,6 +16,7 @@ const db = firebase.firestore();
 const storage = firebase.storage();
 const provider = new firebase.auth.GoogleAuthProvider();
 
+
 // --- Cloudinary конфіг ---
 const CLOUD_NAME = "dslmbyqys";
 const UPLOAD_PRESET = "freepay";
@@ -283,6 +284,10 @@ async function register(email, password, name) {
 async function login(email, password) {
   try {
     await auth.signInWithEmailAndPassword(email, password);
+    const user = auth.currentUser;
+    if (user) {
+      await setUserOnlineStatus(user.uid, true);
+    }
     showMessage('Logged in!', 'success');
     closeModal('loginModal');
   } catch (error) {
@@ -293,6 +298,10 @@ async function login(email, password) {
 // Вихід
 async function logout() {
   try {
+    const user = auth.currentUser;
+    if (user) {
+      await setUserOnlineStatus(user.uid, false);
+    }
     await auth.signOut();
     showAuthButtons();
     closeModal('profileModal');
@@ -301,7 +310,14 @@ async function logout() {
     showMessage('Logout error: ' + error.message, 'error');
   }
 }
-window.logout = logout;
+
+// Функція для встановлення статусу онлайн/офлайн
+function setUserOnlineStatus(uid, isOnline) {
+  return db.collection('users').doc(uid).update({
+    online: isOnline,
+    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
 
 // Google-вхід
 async function googleSignIn() {
@@ -494,3 +510,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Завантаження поточного аватара при старті
   loadCurrentAvatar();
 }); 
+// Додайте цей код в кінець файлу index.js, після DOMContentLoaded
+window.addEventListener('beforeunload', async () => {
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      await setUserOnlineStatus(user.uid, false);
+    } catch (error) {
+      console.error('Error updating online status:', error);
+    }
+  }
+});
