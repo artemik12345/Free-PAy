@@ -33,6 +33,8 @@
       </div>
 
       <div id="userAvatarContainer" style="display:none; position: relative;">
+        <button id="goToConsoleBtn" class="console-btn hidden">Go to Console</button>
+
         <img src="/images/proff.png" alt="avatar" id="userAvatar"
           style="border-radius: 50%; width: 40px; height: 40px; cursor: pointer; margin-top: 20px; border: 3px solid #332b4f;" />
       </div>
@@ -118,9 +120,6 @@
           <input type="text" id="profileName" class="modal-input" placeholder="Name" />
           <input type="email" id="profileEmail" class="modal-input" placeholder="Email" />
           <div style="position: relative; width: 100%; max-width: 300px; margin-bottom: 15px;">
-            <input type="password" id="profilePassword" class="modal-input" placeholder="New Password (optional)"
-              style="padding-right: 80px;" />
-            <button type="button" id="togglePasswordBtn" class="aaaa">Show</button>
           </div>
 
           <button id="logoutBtn" class="modal-btn">Go out</button>
@@ -151,6 +150,7 @@
           <input type="text" placeholder="Email" class="modal-input" />
           <input type="password" placeholder="Password" class="modal-input" />
           <button class="modal-btn">Sign Up</button>
+
           <button class="modal-btn google-btn" style="margin-top: 10px;">Sign up with Google</button>
           <button class="modal-close">×</button>
         </div>
