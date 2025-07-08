@@ -478,12 +478,13 @@ const pokazDiv = document.querySelector('.pokaz');
 const tabButtons = document.querySelectorAll('.menu .btn');
 
 // Збережемо HTML контент для кожної вкладки в окремих функціях
+// Збережемо HTML контент для кожної вкладки в окремих функціях
 function renderConsoleTab() {
   return `
     <div class="console-area">
       <div id="commandLog" class="command-log"></div>
-      <input type="text" id="commandInput" placeholder="Введіть команду..." autocomplete="off" />
-      <button id="runCommandBtn">Виконати</button>
+      <input type="text" id="commandInput" placeholder="Enter command..." autocomplete="off" />
+      <button id="runCommandBtn">Run</button>
     </div>
   `;
 }
@@ -491,26 +492,26 @@ function renderConsoleTab() {
 function renderUsersTab() {
   return `
     <div class="users-list">
-      <h3>Всі користувачі:</h3>
+      <h3>All users:</h3>
       <ul id="usersList"></ul>
     </div>
     <div id="userDetails" style="display:none; margin-top: 20px;">
-      <h4>Інформація про користувача:</h4>
-      <p><b>Нік:</b> <span id="detailName"></span></p>
+      <h4>User information:</h4>
+      <p><b>Nickname:</b> <span id="detailName"></span></p>
       <p><b>Email:</b> <span id="detailEmail"></span></p>
       <p><b>Google Sign-In:</b> <span id="detailGoogle"></span></p>
-      <p><b>Доступ до консолі:</b> <span id="detailAccess"></span></p>
+      <p><b>Console access:</b> <span id="detailAccess"></span></p>
       <button id="toggleAccessBtn"></button>
     </div>
   `;
 }
 
 function renderMagazineTab() {
-  return `<p>Тут буде вміст Magazine (поки пусто)</p>`;
+  return `<p>Magazine content will be here (empty for now)</p>`;
 }
 
 function renderCustomerAssistanceTab() {
-  return `<p>Тут буде Customer Assistance (поки пусто)</p>`;
+  return `<p>Customer Assistance will be here (empty for now)</p>`;
 }
 
 // Головна функція для рендеру вкладки
@@ -531,7 +532,7 @@ function renderTab(tabName) {
       pokazDiv.innerHTML = renderCustomerAssistanceTab();
       break;
     default:
-      pokazDiv.innerHTML = `<p>Виберіть вкладку</p>`;
+      pokazDiv.innerHTML = `<p>Please select a tab</p>`;
   }
 }
 
@@ -541,6 +542,9 @@ function initConsoleTab() {
   const commandInput = document.getElementById('commandInput');
   const runCommandBtn = document.getElementById('runCommandBtn');
 
+  commandInput.classList.add('input-class');   // Назви клас як хочеш
+  runCommandBtn.classList.add('btn-class');
+
   function addToLog(message, type = 'info') {
     const div = document.createElement('div');
     div.textContent = message;
@@ -549,14 +553,89 @@ function initConsoleTab() {
     commandLog.scrollTop = commandLog.scrollHeight;
   }
 
-  function executeCommand(command) {
+  async function executeCommand(command) {
     if (!command.trim()) return;
     addToLog(`> ${command}`, 'info');
+
+    const [cmd, ...rest] = command.trim().split(' ');
+
+    // Перевірка, чи користувач увійшов і чи має доступ
+    const currentUser = firebase.auth().currentUser;
+    if (!currentUser) {
+      addToLog('Please log in first!', 'error');
+      return;
+    }
+
     try {
-      const result = eval(command);
-      addToLog(String(result));
-    } catch (error) {
-      addToLog(error.message, 'error');
+      const currentUserDoc = await db.collection('users').doc(currentUser.uid).get();
+      const isAdmin = currentUserDoc.exists && currentUserDoc.data().access === true;
+
+      switch (cmd.toLowerCase()) {
+        case '/help': {
+          addToLog('Commands: /help, /ban [email], /unban [email], /grant [email]');
+          break;
+        }
+
+        case '/ban':
+        case '/unban': {
+          if (!isAdmin) {
+            addToLog('Insufficient rights for this command.', 'error');
+            break;
+          }
+
+          const emailBan = rest[0];
+          if (!emailBan) {
+            addToLog('Please specify an email', 'error');
+            break;
+          }
+
+          const snapBan = await db.collection("users").where("email", "==", emailBan).get();
+          if (snapBan.empty) {
+            addToLog('User not found', 'error');
+            break;
+          }
+
+          const userDocBan = snapBan.docs[0];
+          await userDocBan.ref.update({ banned: cmd === '/ban' });
+          addToLog(`User ${emailBan} has been ${cmd === '/ban' ? 'banned' : 'unbanned'}`);
+          break;
+        }
+
+        case '/grant': {
+          if (!isAdmin) {
+            addToLog('Insufficient rights for this command.', 'error');
+            break;
+          }
+
+          const emailGrant = rest[0];
+          if (!emailGrant) {
+            addToLog('Please specify an email', 'error');
+            break;
+          }
+
+          const snapGrant = await db.collection("users").where("email", "==", emailGrant).get();
+          if (snapGrant.empty) {
+            addToLog('User not found', 'error');
+            break;
+          }
+
+          const userDocGrant = snapGrant.docs[0];
+          await userDocGrant.ref.update({ access: true });
+          addToLog(`User ${emailGrant} has been granted console access.`);
+          break;
+        }
+
+        default:
+          // Якщо це не команда, пробуємо виконати як JS (eval)
+          try {
+            const result = eval(command);
+            addToLog(String(result));
+          } catch (error) {
+            addToLog(error.message, 'error');
+          }
+      }
+    } catch (err) {
+      addToLog('Error executing command: ' + err.message, 'error');
     }
   }
 
@@ -606,8 +685,8 @@ async function initUsersTab() {
         usersList.appendChild(li);
       });
     } catch (error) {
-      console.error('Помилка завантаження користувачів:', error);
-      usersList.innerHTML = '<li>Не вдалося завантажити користувачів</li>';
+      console.error('Error loading users:', error);
+      usersList.innerHTML = '<li>Failed to load users</li>';
     }
   }
 
@@ -621,23 +700,23 @@ async function initUsersTab() {
 
       detailName.textContent = data.name || '---';
       detailEmail.textContent = data.email || '---';
-      detailGoogle.textContent = data.googleSignIn ? 'Так' : 'Ні';
-      detailAccess.textContent = data.access ? 'Є доступ' : 'Нема доступу';
+      detailGoogle.textContent = data.googleSignIn ? 'Yes' : 'No';
+      detailAccess.textContent = data.access ? 'Access granted' : 'No access';
 
       // Нові поля — якщо є, інакше "none"
-      detailVerified.textContent = data.verified !== undefined ? (data.verified ? 'Верифікований' : 'Не верифікований') : 'none';
+      detailVerified.textContent = data.verified !== undefined ? (data.verified ? 'Verified' : 'Not verified') : 'none';
       detailCard.textContent = data.cardNumber || 'none';
 
-      toggleAccessBtn.textContent = data.access ? 'Відмінити доступ' : 'Надати доступ';
+      toggleAccessBtn.textContent = data.access ? 'Revoke Access' : 'Grant Access';
 
       userDetailsDiv.style.display = 'block';
 
       // Приховуємо історію при новому виборі користувача
       userHistoryDiv.style.display = 'none';
-      userHistoryDiv.innerHTML = 'Історія поки недоступна...';
+      userHistoryDiv.innerHTML = 'History is currently unavailable...';
 
     } catch (error) {
-      console.error('Помилка показу деталей користувача:', error);
+      console.error('Error showing user details:', error);
     }
   }
 
@@ -655,11 +734,11 @@ async function initUsersTab() {
     try {
       await db.collection('users').doc(selectedUser.uid).update({ access: newAccess });
       selectedUser.access = newAccess;
-      detailAccess.textContent = newAccess ? 'Є доступ' : 'Нема доступу';
-      toggleAccessBtn.textContent = newAccess ? 'Відмінити доступ' : 'Надати доступ';
-      console.log(`Доступ користувача ${selectedUser.name} змінено на ${newAccess}`);
+      detailAccess.textContent = newAccess ? 'Access granted' : 'No access';
+      toggleAccessBtn.textContent = newAccess ? 'Revoke Access' : 'Grant Access';
+      console.log(`User ${selectedUser.name} access changed to ${newAccess}`);
     } catch (error) {
-      console.error('Помилка оновлення доступу:', error);
+      console.error('Error updating access:', error);
     }
   });
 
@@ -667,14 +746,11 @@ async function initUsersTab() {
   showHistoryBtn.addEventListener('click', async () => {
     if (!selectedUser) return;
 
-    // Тут можна додати завантаження історії з БД, поки показуємо заглушку
     userHistoryDiv.style.display = userHistoryDiv.style.display === 'block' ? 'none' : 'block';
 
-    // Для прикладу: можна підвантажити історію з підколекції 'history' користувача
-    
     const historySnapshot = await db.collection('users').doc(selectedUser.uid).collection('history').orderBy('date', 'desc').get();
     if (historySnapshot.empty) {
-      userHistoryDiv.innerHTML = 'Історія порожня';
+      userHistoryDiv.innerHTML = 'History is empty';
     } else {
       userHistoryDiv.innerHTML = '';
       historySnapshot.forEach(doc => {
@@ -684,13 +760,10 @@ async function initUsersTab() {
         userHistoryDiv.appendChild(p);
       });
     }
-    
   });
 
   await loadAllUsers();
 }
-
-
 
 // Обробник кліку по кнопках меню
 tabButtons.forEach(btn => {
@@ -746,7 +819,7 @@ function initConsoleTab() {
     // Перевірка, чи користувач увійшов і чи має доступ
     const currentUser = firebase.auth().currentUser;
     if (!currentUser) {
-      addToLog('Спочатку увійдіть в систему!', 'error');
+      addToLog('Log in first!', 'error');
       return;
     }
 
@@ -756,56 +829,56 @@ function initConsoleTab() {
 
       switch (cmd.toLowerCase()) {
         case '/help': {
-          addToLog('Команди: /help, /ban [email], /unban [email], /grant [email]');
+          addToLog('Сommand: /help, /ban [email], /unban [email], /grant [email]');
           break;
         }
 
         case '/ban':
         case '/unban': {
           if (!isAdmin) {
-            addToLog('Недостатньо прав для цієї команди.', 'error');
+            addToLog('Insufficient permissions for this command.', 'error');
             break;
           }
 
           const emailBan = rest[0];
           if (!emailBan) {
-            addToLog('Вкажи email', 'error');
+            addToLog('Enter email', 'error');
             break;
           }
 
           const snapBan = await db.collection("users").where("email", "==", emailBan).get();
           if (snapBan.empty) {
-            addToLog('Користувача не знайдено', 'error');
+            addToLog('User not found', 'error');
             break;
           }
 
           const userDocBan = snapBan.docs[0];
           await userDocBan.ref.update({ banned: cmd === '/ban' });
-          addToLog(`Користувача ${emailBan} було ${cmd === '/ban' ? 'заблоковано' : 'розблоковано'}`);
+          addToLog(`User ${emailBan} було ${cmd === '/ban' ? 'blocked' : 'unlocked'}`);
           break;
         }
 
         case '/grant': {
           if (!isAdmin) {
-            addToLog('Недостатньо прав для цієї команди.', 'error');
+            addToLog('Insufficient permissions for this command.', 'error');
             break;
           }
 
           const emailGrant = rest[0];
           if (!emailGrant) {
-            addToLog('Вкажи email', 'error');
+            addToLog('Enter email', 'error');
             break;
           }
 
           const snapGrant = await db.collection("users").where("email", "==", emailGrant).get();
           if (snapGrant.empty) {
-            addToLog('Користувача не знайдено', 'error');
+            addToLog('User not found', 'error');
             break;
           }
 
           const userDocGrant = snapGrant.docs[0];
           await userDocGrant.ref.update({ access: true });
-          addToLog(`Користувачу ${emailGrant} надано доступ до консолі.`);
+          addToLog(`To the user ${emailGrant} console access granted.`);
           break;
         }
 
@@ -819,7 +892,7 @@ function initConsoleTab() {
           }
       }
     } catch (err) {
-      addToLog('Помилка при виконанні команди: ' + err.message, 'error');
+      addToLog('Error executing command: ' + err.message, 'error');
     }
   }
 
