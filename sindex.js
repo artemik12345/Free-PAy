@@ -238,19 +238,23 @@ function disableSettingsIfModalOpen(isOpen) {
 function showUserAvatar(user) {
   document.getElementById('authButtons').style.display = 'none';
   const userAvatarContainer = document.getElementById('userAvatarContainer');
-  userAvatarContainer.style.display = 'block';
+  userAvatarContainer.style.display = 'flex';
 
   const avatarImg = document.getElementById('userAvatar');
   avatarImg.src = user.photoURL || '/images/proff.png';
   avatarImg.alt = user.displayName || user.email || '';
   avatarImg.title = user.displayName || user.email || '';
+
+  // 🔥 Перевірка доступу до консолі
+  db.collection("users").doc(user.uid).get().then(doc => {
+    if (doc.exists && doc.data().access === true) {
+      document.getElementById('goToConsoleBtn')?.classList.remove('hidden');
+    } else {
+      document.getElementById('goToConsoleBtn')?.classList.add('hidden');
+    }
+  });
 }
 
-// Показати кнопки логіну/реєстрації
-function showAuthButtons() {
-  document.getElementById('authButtons').style.display = 'flex';
-  document.getElementById('userAvatarContainer').style.display = 'none';
-}
 
 // Реєстрація
 async function register(email, password, name) {
@@ -413,6 +417,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn2')?.addEventListener('click', () => openModal('historyModal'));
   document.getElementById('btn3')?.addEventListener('click', () => location.reload());
   document.querySelector('.btnnn')?.addEventListener('click', () => openModal('newCardModal'));
+  document.getElementById('goToConsoleBtn')?.addEventListener('click', () => {
+    window.location.href = 'console.html';
+  });
 
 
   // Закриття модалок
