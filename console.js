@@ -16,6 +16,24 @@ const db = firebase.firestore();
 const storage = firebase.storage();
 const provider = new firebase.auth.GoogleAuthProvider();
 
+//-----------------------------------------------------------
+
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    // Оновлюємо статус на "онлайн" при завантаженні консолі
+    try {
+      await setUserOnlineStatus(user.uid, true);
+      
+      // Додаємо обробник для оновлення статусу при закритті вкладки
+      window.addEventListener('beforeunload', async () => {
+        await setUserOnlineStatus(user.uid, false);
+      });
+    } catch (error) {
+      console.error('Error updating online status:', error);
+    }
+  }
+});
+
 // --- Cloudinary конфіг ---
 const CLOUD_NAME = "dslmbyqys";
 const UPLOAD_PRESET = "freepay";
@@ -272,6 +290,10 @@ async function register(email, password, name) {
 async function login(email, password) {
   try {
     await auth.signInWithEmailAndPassword(email, password);
+    const user = auth.currentUser;
+    if (user) {
+      await setUserOnlineStatus(user.uid, true);
+    }
     showMessage('Logged in!', 'success');
     closeModal('loginModal');
   } catch (error) {
@@ -279,9 +301,22 @@ async function login(email, password) {
   }
 }
 
+
+function setUserOnlineStatus(uid, isOnline) {
+  return db.collection('users').doc(uid).update({
+    online: isOnline,
+    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+
 // Вихід
 async function logout() {
   try {
+    const user = auth.currentUser;
+    if (user) {
+      await setUserOnlineStatus(user.uid, false);
+    }
     await auth.signOut();
     showAuthButtons();
     closeModal('profileModal');
@@ -291,6 +326,7 @@ async function logout() {
   }
 }
 window.logout = logout;
+
 
 // Google-вхід
 async function googleSignIn() {
@@ -660,35 +696,96 @@ function initConsoleTab() {
 
 // Ініціалізація логіки для вкладки Users
 async function initUsersTab() {
+  // Оновлюємо статус поточного користувача на "онлайн"
+  const currentUser = auth.currentUser;
+  if (currentUser) {
+    await setUserOnlineStatus(currentUser.uid, true);
+  }
   const usersList = document.getElementById('usersList');
   const userDetailsDiv = document.getElementById('userDetails');
   const detailName = document.getElementById('detailName');
   const detailEmail = document.getElementById('detailEmail');
   const detailGoogle = document.getElementById('detailGoogle');
   const detailAccess = document.getElementById('detailAccess');
-  const detailVerified = document.getElementById('detailVerified');  // нове поле
-  const detailCard = document.getElementById('detailCard');          // нове поле
+  const detailVerified = document.getElementById('detailVerified');
+  const detailCard = document.getElementById('detailCard');
 
   const toggleAccessBtn = document.getElementById('toggleAccessBtn');
-  const showHistoryBtn = document.getElementById('showHistoryBtn');  // кнопка історії
-  const userHistoryDiv = document.getElementById('userHistory');    // блок історії
+  const showHistoryBtn = document.getElementById('showHistoryBtn');
+  const userHistoryDiv = document.getElementById('userHistory');
 
   toggleAccessBtn.classList.add('btn', 'btn-primary');
   showHistoryBtn.classList.add('btn', 'btn-secondary');
 
   let selectedUser = null;
+  let unsubscribeUsers = null;
 
   async function loadAllUsers() {
     try {
-      const usersSnapshot = await db.collection('users').orderBy('name').get();
+      const currentUser = auth.currentUser;
       usersList.innerHTML = '';
-      usersSnapshot.forEach(doc => {
-        const userData = doc.data();
-        const li = document.createElement('li');
-        li.textContent = userData.name || userData.email || 'No name';
-        li.dataset.uid = doc.id;
-        li.classList.add('user-list-item');
-        usersList.appendChild(li);
+      
+      if (unsubscribeUsers) unsubscribeUsers();
+      
+      unsubscribeUsers = db.collection('users').orderBy('name').onSnapshot(snapshot => {
+        usersList.innerHTML = '';
+        snapshot.forEach(doc => {
+          const userData = doc.data();
+          const li = document.createElement('li');
+          li.textContent = userData.name || userData.email || 'No name';
+          li.dataset.uid = doc.id;
+          li.classList.add('user-list-item');
+
+          if (currentUser && doc.id === currentUser.uid) {
+            li.classList.add('current-user');
+            li.title = 'This is you';
+          }
+
+          const statusSpan = document.createElement('span');
+          statusSpan.style.marginLeft = '10px';
+          statusSpan.style.display = 'inline-flex';
+          statusSpan.style.alignItems = 'center';
+          statusSpan.style.gap = '5px';
+          
+          const statusIcon = document.createElement('span');
+          statusIcon.style.width = '10px';
+          statusIcon.style.height = '10px';
+          statusIcon.style.borderRadius = '50%';
+          statusIcon.style.backgroundColor = userData.online ? 'limegreen' : 'gray';
+          statusIcon.style.display = 'inline-block';
+          
+          const statusText = document.createElement('span');
+          statusText.textContent = userData.online ? 'Online' : 'Offline';
+          statusText.style.fontWeight = 'normal';
+          
+          statusSpan.appendChild(statusIcon);
+          statusSpan.appendChild(statusText);
+          li.appendChild(statusSpan);
+          
+          if (!userData.online && userData.lastSeen) {
+            const lastSeenSpan = document.createElement('span');
+            lastSeenSpan.style.marginLeft = '10px';
+            lastSeenSpan.style.fontSize = '0.8em';
+            lastSeenSpan.style.color = '#aaa';
+            
+            const lastSeenDate = userData.lastSeen.toDate();
+            const now = new Date();
+            const diffMinutes = Math.floor((now - lastSeenDate) / (1000 * 60));
+            
+            if (diffMinutes < 60) {
+              lastSeenSpan.textContent = `${diffMinutes} min ago`;
+            } else if (diffMinutes < 24 * 60) {
+              const hours = Math.floor(diffMinutes / 60);
+              lastSeenSpan.textContent = `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+            } else {
+              lastSeenSpan.textContent = lastSeenDate.toLocaleDateString();
+            }
+            
+            li.appendChild(lastSeenSpan);
+          }
+          
+          usersList.appendChild(li);
+        });
       });
     } catch (error) {
       console.error('Error loading users:', error);
@@ -708,16 +805,27 @@ async function initUsersTab() {
       detailEmail.textContent = data.email || '---';
       detailGoogle.textContent = data.googleSignIn ? 'Yes' : 'No';
       detailAccess.textContent = data.access ? 'Access granted' : 'No access';
-
-      // Нові поля — якщо є, інакше "none"
       detailVerified.textContent = data.verified !== undefined ? (data.verified ? 'Verified' : 'Not verified') : 'none';
       detailCard.textContent = data.cardNumber || 'none';
 
+      const onlineStatus = document.createElement('span');
+      onlineStatus.textContent = data.online ? '● Online' : '● Offline';
+      onlineStatus.style.color = data.online ? 'limegreen' : 'gray';
+      onlineStatus.style.marginLeft = '5px';
+      
+      if (!data.online && data.lastSeen) {
+        const lastSeenDate = data.lastSeen.toDate();
+        const lastSeenText = document.createElement('span');
+        lastSeenText.textContent = ` (Last seen: ${lastSeenDate.toLocaleString()})`;
+        lastSeenText.style.color = '#aaa';
+        lastSeenText.style.fontSize = '0.9em';
+        onlineStatus.appendChild(lastSeenText);
+      }
+      
+      detailAccess.appendChild(onlineStatus);
+
       toggleAccessBtn.textContent = data.access ? 'Revoke Access' : 'Grant Access';
-
       userDetailsDiv.style.display = 'block';
-
-      // Приховуємо історію при новому виборі користувача
       userHistoryDiv.style.display = 'none';
       userHistoryDiv.innerHTML = 'History is currently unavailable...';
 
@@ -742,13 +850,11 @@ async function initUsersTab() {
       selectedUser.access = newAccess;
       detailAccess.textContent = newAccess ? 'Access granted' : 'No access';
       toggleAccessBtn.textContent = newAccess ? 'Revoke Access' : 'Grant Access';
-      console.log(`User ${selectedUser.name} access changed to ${newAccess}`);
     } catch (error) {
       console.error('Error updating access:', error);
     }
   });
 
-  // Відкриття історії користувача (поки з тестовим текстом)
   showHistoryBtn.addEventListener('click', async () => {
     if (!selectedUser) return;
 
@@ -769,6 +875,10 @@ async function initUsersTab() {
   });
 
   await loadAllUsers();
+  
+  window.addEventListener('beforeunload', () => {
+    if (unsubscribeUsers) unsubscribeUsers();
+  });
 }
 
 // Обробник кліку по кнопках меню
@@ -781,7 +891,6 @@ tabButtons.forEach(btn => {
 document.addEventListener('DOMContentLoaded', () => {
   renderTab('Console');
 
-  // Оголошуємо tabButtons ТУТ, щоб елементи вже були в DOM
   const tabButtons = document.querySelectorAll('.menu .btn');
   const pokazDiv = document.querySelector('.pokaz');
 
@@ -791,21 +900,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
-// Обробник кліку по кнопках меню
-tabButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    renderTab(btn.textContent);
-  });
-});
 
-// При завантаженні сторінки показуємо першу вкладку (Console)
 // Ініціалізація логіки для вкладки Console
 function initConsoleTab() {
   const commandLog = document.getElementById('commandLog');
   const commandInput = document.getElementById('commandInput');
   const runCommandBtn = document.getElementById('runCommandBtn');
 
-  commandInput.classList.add('input-class');   // Назви клас як хочеш
+  commandInput.classList.add('input-class');
   runCommandBtn.classList.add('btn-class');
 
   function addToLog(message, type = 'info') {
@@ -822,8 +924,7 @@ function initConsoleTab() {
 
     const [cmd, ...rest] = command.trim().split(' ');
 
-    // Перевірка, чи користувач увійшов і чи має доступ
-    const currentUser = firebase.auth().currentUser;
+    const currentUser = auth.currentUser;
     if (!currentUser) {
       addToLog('Log in first!', 'error');
       return;
@@ -835,7 +936,7 @@ function initConsoleTab() {
 
       switch (cmd.toLowerCase()) {
         case '/help': {
-          addToLog('Сommand: /help, /ban [email], /unban [email], /grant [email]');
+          addToLog('Commands: /help, /ban [email], /unban [email], /grant [email]');
           break;
         }
 
@@ -860,7 +961,7 @@ function initConsoleTab() {
 
           const userDocBan = snapBan.docs[0];
           await userDocBan.ref.update({ banned: cmd === '/ban' });
-          addToLog(`User ${emailBan} було ${cmd === '/ban' ? 'blocked' : 'unlocked'}`);
+          addToLog(`User ${emailBan} has been ${cmd === '/ban' ? 'banned' : 'unbanned'}`);
           break;
         }
 
@@ -884,12 +985,11 @@ function initConsoleTab() {
 
           const userDocGrant = snapGrant.docs[0];
           await userDocGrant.ref.update({ access: true });
-          addToLog(`To the user ${emailGrant} console access granted.`);
+          addToLog(`User ${emailGrant} has been granted console access.`);
           break;
         }
 
         default:
-          // Якщо це не команда, пробуємо виконати як JS (eval)
           try {
             const result = eval(command);
             addToLog(String(result));
