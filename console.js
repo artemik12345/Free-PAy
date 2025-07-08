@@ -501,12 +501,15 @@ function renderUsersTab() {
       <p><b>Email:</b> <span id="detailEmail"></span></p>
       <p><b>Google Sign-In:</b> <span id="detailGoogle"></span></p>
       <p><b>Console access:</b> <span id="detailAccess"></span></p>
+      <p><b>Verified:</b> <span id="detailVerified"></span></p>  <!-- Додано -->
+      <p><b>Card Number:</b> <span id="detailCard"></span></p> <!-- Додано -->
       <button id="toggleAccessBtn"></button>
-      <button id="showHistoryBtn">Show History</button>  <!-- Додана кнопка -->
-      <div id="userHistory" style="display:none; margin-top: 10px;"></div> <!-- Доданий блок історії -->
+      <button id="showHistoryBtn">Show History</button>
+      <div id="userHistory" style="display:none; margin-top: 10px;"></div>
     </div>
   `;
 }
+
 
 
 function renderMagazineTab() {
