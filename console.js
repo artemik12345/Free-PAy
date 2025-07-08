@@ -502,9 +502,12 @@ function renderUsersTab() {
       <p><b>Google Sign-In:</b> <span id="detailGoogle"></span></p>
       <p><b>Console access:</b> <span id="detailAccess"></span></p>
       <button id="toggleAccessBtn"></button>
+      <button id="showHistoryBtn">Show History</button>  <!-- Додана кнопка -->
+      <div id="userHistory" style="display:none; margin-top: 10px;"></div> <!-- Доданий блок історії -->
     </div>
   `;
 }
+
 
 function renderMagazineTab() {
   return `<p>Magazine content will be here (empty for now)</p>`;
