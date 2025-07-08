@@ -293,6 +293,22 @@ main {
   z-index: 1000;
 }
 
+.console-btn{
+  margin-top: 22px;
+  width: 130px;
+  height: 40px;
+  border-radius: 15px;
+  border: none;
+  background-color: #4a1a72;
+  margin-right: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.6);
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+.console-btn:hover {
+    background-color: rgb(99, 36, 126);
+}
+
 .open-settings.disabled {
   opacity: 0.3;
   pointer-events: none;
@@ -647,6 +663,11 @@ body .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{
 .toast-message {
   animation: slideInRight 0.3s forwards;
 }
+
+.hidden {
+  display: none !important;
+}
+
 
 .toast-message.success { background-color: rgb(52, 106, 52);color: white; border-radius: 8px; width: 200px; margin-bottom: 5px; height: auto;padding: 5px 5px 5px 5px;}
 .toast-message.error { background-color: rgb(157, 29, 29);color: white; border-radius: 8px; width: 200px; margin-bottom: 5px; height: auto;padding: 5px 5px 5px 5px;}
