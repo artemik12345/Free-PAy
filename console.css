@@ -53,7 +53,7 @@ header {
 .FreeMan{
   width: 700px;
   height: 700px;
-  top: 20%;   
+  top: 35%;   
  position: fixed;
  left: -140px; /*-100*/
     pointer-events: none;
