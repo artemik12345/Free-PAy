@@ -837,7 +837,7 @@ function initConsoleTab() {
     } catch (err) {
       addToLog('Error executing command: ' + err.message, 'error');
     }
-  }
+  
 
   runCommandBtn.addEventListener('click', () => {
     executeCommand(commandInput.value);
