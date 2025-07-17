@@ -51,13 +51,16 @@ header {
 }
 
 .FreeMan {
-  width: 50vw;       /* 50% ширини вікна */
-  height: 50vh;      /* 50% висоти вікна */
-  top: 10vh;         /* відступ зверху 10% */
+  width: 100%;
+  max-width: 700px;
+  height: auto;
+  aspect-ratio: 1 / 1; /* зберігає пропорції 1:1 */
   position: fixed;
-  left: -10vw;       /* трохи вліво за межі екрана */
+  top: 10vh;
+  left: 0;
   pointer-events: none;
 }
+
 
 .manyy{
    position: fixed;
