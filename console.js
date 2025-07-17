@@ -549,8 +549,34 @@ function renderUsersTab() {
 
 
 function renderMagazineTab() {
-  return `<p>Magazine content will be here (empty for now)</p>`;
+  const container = document.createElement("div");
+  container.innerHTML = `<h2>Console Errors (last 7 days)</h2><ul id="errorList">Loading...</ul>`;
+
+  firebase.firestore()
+    .collection("errors")
+    .orderBy("timestamp", "desc")
+    .limit(100)
+    .get()
+    .then(snapshot => {
+      const list = container.querySelector("#errorList");
+      list.innerHTML = ""; // Clear "Loading..."
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <b>${data.message}</b><br/>
+          <small>${data.source}:${data.lineno}:${data.colno}</small><br/>
+          <code style="white-space: pre-wrap">${data.stack || "(no stack)"}</code><br/>
+          <small>${new Date(data.timestamp).toLocaleString()} – user: ${data.userId}</small>
+          <hr/>
+        `;
+        list.appendChild(li);
+      });
+    });
+
+  return container.outerHTML;
 }
+
 
 function renderCustomerAssistanceTab() {
   return `<p>Customer Assistance will be here (empty for now)</p>`;
