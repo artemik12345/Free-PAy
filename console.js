@@ -936,7 +936,7 @@ function initConsoleTab() {
 
     switch (cmd.toLowerCase()) {
       case '/help': {
-        addToLog('Команди: /help, /ban [email], /unban [email], /grant [email], /revoke [email], /balance [email], /setbalance [email] [sum], /addbalance [email] [sum], /transactions [email], /cleartransactions [email], /logins [email], /set2fa [email] true|false, /reload, /version');
+        addToLog('Commands: /help, /ban [email], /unban [email], /grant [email], /revoke [email], /balance [email], /setbalance [email] [sum], /addbalance [email] [sum], /transactions [email], /cleartransactions [email], /logins [email], /set2fa [email] true|false, /reload, /version');
         break;
       }
 
