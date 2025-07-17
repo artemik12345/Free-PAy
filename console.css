@@ -55,7 +55,7 @@ header {
   height: 700px;
    aspect-ratio: 1 / 1;      /* квадратна форма */
   position: fixed;
-  bottom: 60px;                /* прикріплено до низу */
+  bottom: 55px;                /* прикріплено до низу */
   left: -10vw;              /* трохи вилізає за межу зліва */
   pointer-events: none;
 }
