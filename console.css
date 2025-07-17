@@ -57,6 +57,7 @@ header {
  position: fixed;
  left: -140px; /*-100*/
     pointer-events: none;
+  aspect-ratio: 1 / 1;
 }
 
 
