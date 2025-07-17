@@ -613,69 +613,227 @@ function initConsoleTab() {
       const isAdmin = currentUserDoc.exists && currentUserDoc.data().access === true;
 
       switch (cmd.toLowerCase()) {
-        case '/help': {
-          addToLog('Commands: /help, /ban [email], /unban [email], /grant [email]');
-          break;
-        }
+  case '/help': {
+    addToLog('Команди: /help, /ban [email], /unban [email], /grant [email], /revoke [email], /balance [email], /setbalance [email] [сума], /addbalance [email] [сума], /transactions [email], /cleartransactions [email], /logins [email], /set2fa [email] true|false, /reload, /version');
+    break;
+  }
 
-        case '/ban':
-        case '/unban': {
-          if (!isAdmin) {
-            addToLog('Insufficient rights for this command.', 'error');
-            break;
-          }
+  case '/ban':
+  case '/unban': {
+    if (!isAdmin) {
+      addToLog('Insufficient rights for this command.', 'error');
+      break;
+    }
 
-          const emailBan = rest[0];
-          if (!emailBan) {
-            addToLog('Please specify an email', 'error');
-            break;
-          }
+    const emailBan = rest[0];
+    if (!emailBan) {
+      addToLog('Please specify an email', 'error');
+      break;
+    }
 
-          const snapBan = await db.collection("users").where("email", "==", emailBan).get();
-          if (snapBan.empty) {
-            addToLog('User not found', 'error');
-            break;
-          }
+    const snapBan = await db.collection("users").where("email", "==", emailBan).get();
+    if (snapBan.empty) {
+      addToLog('User not found', 'error');
+      break;
+    }
 
-          const userDocBan = snapBan.docs[0];
-          await userDocBan.ref.update({ banned: cmd === '/ban' });
-          addToLog(`User ${emailBan} has been ${cmd === '/ban' ? 'banned' : 'unbanned'}`);
-          break;
-        }
+    const userDocBan = snapBan.docs[0];
+    await userDocBan.ref.update({ banned: cmd === '/ban' });
+    addToLog(`User ${emailBan} has been ${cmd === '/ban' ? 'banned' : 'unbanned'}`);
+    break;
+  }
 
-        case '/grant': {
-          if (!isAdmin) {
-            addToLog('Insufficient rights for this command.', 'error');
-            break;
-          }
+  case '/grant':
+  case '/revoke': {
+    if (!isAdmin) {
+      addToLog('Insufficient rights for this command.', 'error');
+      break;
+    }
 
-          const emailGrant = rest[0];
-          if (!emailGrant) {
-            addToLog('Please specify an email', 'error');
-            break;
-          }
+    const emailAccess = rest[0];
+    if (!emailAccess) {
+      addToLog('Please specify an email', 'error');
+      break;
+    }
 
-          const snapGrant = await db.collection("users").where("email", "==", emailGrant).get();
-          if (snapGrant.empty) {
-            addToLog('User not found', 'error');
-            break;
-          }
+    const snapAccess = await db.collection("users").where("email", "==", emailAccess).get();
+    if (snapAccess.empty) {
+      addToLog('User not found', 'error');
+      break;
+    }
 
-          const userDocGrant = snapGrant.docs[0];
-          await userDocGrant.ref.update({ access: true });
-          addToLog(`User ${emailGrant} has been granted console access.`);
-          break;
-        }
+    const userDocAccess = snapAccess.docs[0];
+    await userDocAccess.ref.update({ access: cmd === '/grant' });
+    addToLog(`User ${emailAccess} has been ${cmd === '/grant' ? 'granted' : 'revoked'} console access.`);
+    break;
+  }
 
-        default:
-          // Якщо це не команда, пробуємо виконати як JS (eval)
-          try {
-            const result = eval(command);
-            addToLog(String(result));
-          } catch (error) {
-            addToLog(error.message, 'error');
-          }
-      }
+  case '/balance': {
+    if (!isAdmin) {
+      addToLog('Insufficient rights.', 'error');
+      break;
+    }
+
+    const email = rest[0];
+    if (!email) {
+      addToLog('Please specify an email', 'error');
+      break;
+    }
+
+    const snap = await db.collection("users").where("email", "==", email).get();
+    if (snap.empty) {
+      addToLog('User not found', 'error');
+      break;
+    }
+
+    const userDoc = snap.docs[0];
+    const data = userDoc.data();
+    addToLog(`Balance of ${email}: $${data.balance ?? 0}`);
+    break;
+  }
+
+  case '/setbalance':
+  case '/addbalance': {
+    if (!isAdmin) {
+      addToLog('Insufficient rights.', 'error');
+      break;
+    }
+
+    const email = rest[0];
+    const amount = parseFloat(rest[1]);
+
+    if (!email || isNaN(amount)) {
+      addToLog('Usage: /setbalance [email] [amount]', 'error');
+      break;
+    }
+
+    const snap = await db.collection("users").where("email", "==", email).get();
+    if (snap.empty) {
+      addToLog('User not found', 'error');
+      break;
+    }
+
+    const userDoc = snap.docs[0];
+    const currentBalance = userDoc.data().balance ?? 0;
+
+    if (cmd === '/setbalance') {
+      await userDoc.ref.update({ balance: amount });
+      addToLog(`Balance of ${email} set to $${amount}`);
+    } else {
+      const newBalance = currentBalance + amount;
+      await userDoc.ref.update({ balance: newBalance });
+      addToLog(`Added $${amount} to ${email}. New balance: $${newBalance}`);
+    }
+
+    break;
+  }
+
+  case '/transactions': {
+    const email = rest[0];
+    if (!isAdmin || !email) {
+      addToLog('Usage: /transactions [email]', 'error');
+      break;
+    }
+
+    const snap = await db.collection("users").where("email", "==", email).get();
+    if (snap.empty) {
+      addToLog('User not found', 'error');
+      break;
+    }
+
+    const userDoc = snap.docs[0];
+    const data = userDoc.data();
+    const txs = data.transactions ?? [];
+    if (txs.length === 0) {
+      addToLog('No transactions found.');
+    } else {
+      addToLog(`Transactions for ${email}:\n` + txs.map((t, i) => `${i + 1}. ${t}`).join('\n'));
+    }
+
+    break;
+  }
+
+  case '/cleartransactions': {
+    const email = rest[0];
+    if (!isAdmin || !email) {
+      addToLog('Usage: /cleartransactions [email]', 'error');
+      break;
+    }
+
+    const snap = await db.collection("users").where("email", "==", email).get();
+    if (snap.empty) {
+      addToLog('User not found', 'error');
+      break;
+    }
+
+    const userDoc = snap.docs[0];
+    await userDoc.ref.update({ transactions: [] });
+    addToLog(`Cleared all transactions for ${email}`);
+    break;
+  }
+
+  case '/logins': {
+    const email = rest[0];
+    if (!isAdmin || !email) {
+      addToLog('Usage: /logins [email]', 'error');
+      break;
+    }
+
+    const snap = await db.collection("users").where("email", "==", email).get();
+    if (snap.empty) {
+      addToLog('User not found', 'error');
+      break;
+    }
+
+    const logins = snap.docs[0].data().logins ?? [];
+    addToLog(`Login history for ${email}:\n` + logins.map((l, i) => `${i + 1}. ${l}`).join('\n'));
+    break;
+  }
+
+  case '/set2fa': {
+    if (!isAdmin) {
+      addToLog('Insufficient rights.', 'error');
+      break;
+    }
+
+    const email = rest[0];
+    const value = rest[1] === 'true';
+
+    if (!email || (rest[1] !== 'true' && rest[1] !== 'false')) {
+      addToLog('Usage: /set2fa [email] true|false', 'error');
+      break;
+    }
+
+    const snap = await db.collection("users").where("email", "==", email).get();
+    if (snap.empty) {
+      addToLog('User not found', 'error');
+      break;
+    }
+
+    await snap.docs[0].ref.update({ twoFA: value });
+    addToLog(`2FA for ${email} has been ${value ? 'enabled' : 'disabled'}.`);
+    break;
+  }
+
+  case '/reload': {
+    location.reload();
+    break;
+  }
+
+  case '/version': {
+    addToLog('Free/Pay Console v1.0.0');
+    break;
+  }
+
+  default:
+    try {
+      const result = eval(command);
+      addToLog(String(result));
+    } catch (error) {
+      addToLog(error.message, 'error');
+    }
+}
+
     } catch (err) {
       addToLog('Error executing command: ' + err.message, 'error');
     }
@@ -934,63 +1092,7 @@ function initConsoleTab() {
       const currentUserDoc = await db.collection('users').doc(currentUser.uid).get();
       const isAdmin = currentUserDoc.exists && currentUserDoc.data().access === true;
 
-      switch (cmd.toLowerCase()) {
-        case '/help': {
-          addToLog('Commands: /help, /ban [email], /unban [email], /grant [email]');
-          break;
-        }
-
-        case '/ban':
-        case '/unban': {
-          if (!isAdmin) {
-            addToLog('Insufficient permissions for this command.', 'error');
-            break;
-          }
-
-          const emailBan = rest[0];
-          if (!emailBan) {
-            addToLog('Enter email', 'error');
-            break;
-          }
-
-          const snapBan = await db.collection("users").where("email", "==", emailBan).get();
-          if (snapBan.empty) {
-            addToLog('User not found', 'error');
-            break;
-          }
-
-          const userDocBan = snapBan.docs[0];
-          await userDocBan.ref.update({ banned: cmd === '/ban' });
-          addToLog(`User ${emailBan} has been ${cmd === '/ban' ? 'banned' : 'unbanned'}`);
-          break;
-        }
-
-        case '/grant': {
-          if (!isAdmin) {
-            addToLog('Insufficient permissions for this command.', 'error');
-            break;
-          }
-
-          const emailGrant = rest[0];
-          if (!emailGrant) {
-            addToLog('Enter email', 'error');
-            break;
-          }
-
-          const snapGrant = await db.collection("users").where("email", "==", emailGrant).get();
-          if (snapGrant.empty) {
-            addToLog('User not found', 'error');
-            break;
-          }
-
-          const userDocGrant = snapGrant.docs[0];
-          await userDocGrant.ref.update({ access: true });
-          addToLog(`User ${emailGrant} has been granted console access.`);
-          break;
-        }
-
-        default:
-          try {
+    мtry {
             const result = eval(command);
             addToLog(String(result));
           } catch (error) {
