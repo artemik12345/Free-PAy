@@ -53,11 +53,11 @@ header {
 .FreeMan{
   width: 700px;
   height: 700px;
-  top: 100px;   
- position: fixed;
- left: -140px; /*-100*/
-    pointer-events: none;
-  aspect-ratio: 1 / 1;
+   aspect-ratio: 1 / 1;      /* квадратна форма */
+  position: fixed;
+  bottom: 0;                /* прикріплено до низу */
+  left: -10vw;              /* трохи вилізає за межу зліва */
+  pointer-events: none;
 }
 
 
