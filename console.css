@@ -307,6 +307,8 @@ footer {
   background-color: #2b0b3e;
   position: absolute;
   top: 90%;
+   position: fixed;
+  bottom: 0;      
 }
 
 .em {
