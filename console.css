@@ -50,15 +50,13 @@ header {
   text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
-.FreeMan {
-  width: 100%;
-  max-width: 700px;
-  height: auto;
-  aspect-ratio: 1 / 1; /* зберігає пропорції 1:1 */
-  position: fixed;
-  top: 10vh;
-  left: 0;
-  pointer-events: none;
+.FreeMan{
+  width: 700px;
+  height: 700px;
+  top: 100px;   
+ position: fixed;
+ left: -140px; /*-100*/
+    pointer-events: none;
 }
 
 
