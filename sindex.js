@@ -11,6 +11,22 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
+window.onerror = function (message, source, lineno, colno, error) {
+  const errorData = {
+    message: message,
+    source: source,
+    lineno: lineno,
+    colno: colno,
+    stack: error?.stack || null,
+    timestamp: new Date().toISOString(),
+    userId: firebase.auth().currentUser?.uid || "anonymous"
+  };
+
+  // Відправляємо помилку в Firestore
+  firebase.firestore().collection("errors").add(errorData);
+};
+
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
