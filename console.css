@@ -50,14 +50,15 @@ header {
   text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
-.FreeMan{
-  width: 700px;
-  height: 700px;
-  top: 30%;   
- position: fixed;
- left: -140px; /*-100*/
-    pointer-events: none;
+.FreeMan {
+  width: 50vw;       /* 50% ширини вікна */
+  height: 50vh;      /* 50% висоти вікна */
+  top: 10vh;         /* відступ зверху 10% */
+  position: fixed;
+  left: -10vw;       /* трохи вліво за межі екрана */
+  pointer-events: none;
 }
+
 .manyy{
    position: fixed;
     pointer-events: none;
