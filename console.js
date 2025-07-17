@@ -1092,17 +1092,17 @@ function initConsoleTab() {
       const currentUserDoc = await db.collection('users').doc(currentUser.uid).get();
       const isAdmin = currentUserDoc.exists && currentUserDoc.data().access === true;
 
-    мtry {
-            const result = eval(command);
-            addToLog(String(result));
-          } catch (error) {
-            addToLog(error.message, 'error');
-          }
-      }
-    } catch (err) {
-      addToLog('Error executing command: ' + err.message, 'error');
+    try {
+      const result = eval(command);
+      addToLog(String(result));
+    } catch (error) {
+      addToLog(error.message, 'error');
     }
+
+  } catch (err) {
+    addToLog('Error executing command: ' + err.message, 'error');
   }
+}
 
   runCommandBtn.addEventListener('click', () => {
     executeCommand(commandInput.value);
