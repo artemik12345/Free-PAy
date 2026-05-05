@@ -13,11 +13,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
   <script src="sindex.js" defer></script>
-  <style>
-    #profileAvatarContainer:hover #avatarOverlay {
-      opacity: 1;
-    }
-  </style>
 </head>
 
 <body>
@@ -28,24 +23,22 @@
         <p class="logoo">Free/Pay</p>
       </div>
       <div class="cnopki" id="authButtons">
-        <button class="cnopki1" id="btnlog">Log In</button>
-        <button class="cnopki1" id="btnsing">Sign Up</button>
+        <button class="cnopki1" id="btnlog" data-i18n="login">Log In</button>
+        <button class="cnopki1" id="btnsing" data-i18n="signup">Sign Up</button>
       </div>
 
       <div id="userAvatarContainer" style="display:none; position: relative;">
-        <button id="goToConsoleBtn" class="console-btn hidden">Go to Console</button>
-
+        <button id="goToConsoleBtn" class="console-btn hidden" data-i18n="console">Go to Console</button>
         <img src="/images/proff.png" alt="avatar" id="userAvatar"
           style="border-radius: 50%; width: 40px; height: 40px; cursor: pointer; margin-top: 20px; border: 3px solid #332b4f;" />
       </div>
     </header>
 
     <main>
-
-      <!-- Основний контент -->
       <div class="osnova">
         <img class="FreeMan" src="/images/FreeMan.png" alt="FreeMan">
         <img class="manyy" src="/images/FreeMany.png" alt="many">
+
         <div class="card">
           <div class="card-inner">
             <div class="card-front">
@@ -68,13 +61,13 @@
         </div>
 
         <div class="batoni">
-          <button class="batoni1" id="btn1">Send</button>
-          <button class="batoni1" id="btn2">History</button>
-          <button class="batoni1" id="btn3">Update</button>
+          <button class="batoni1" id="btn1" data-i18n="send">Send</button>
+          <button class="batoni1" id="btn2" data-i18n="history">History</button>
+          <button class="batoni1" id="btn3" data-i18n="update">Update</button>
         </div>
 
         <div class="balanss">
-          <p class="text">Balance:</p>
+          <p class="text" data-i18n="balance">Balance:</p>
           <p class="text" id="Balanc">00.00</p>
         </div>
       </div>
@@ -85,17 +78,20 @@
       <!-- Settings Modal -->
       <div class="modal" id="settingsModal">
         <div class="modal-content" id="modalContent">
-          <h2>Settings</h2>
+          <h2 data-i18n="settings">Settings</h2>
+
           <div class="section">
-            <p>Theme:</p>
-            <button class="modal-btn" onclick="setTheme('light')">Light</button>
-            <button class="modal-btn" onclick="setTheme('dark')">Dark</button>
+            <p data-i18n="theme">Theme:</p>
+            <button class="modal-btn theme-btn" id="themeLight" onclick="setTheme('light')" data-i18n="themeLight">☀️ Light</button>
+            <button class="modal-btn theme-btn" id="themeDark" onclick="setTheme('dark')" data-i18n="themeDark">🌙 Dark</button>
           </div>
+
           <div class="section">
-            <p>Language:</p>
-            <button class="modal-btn" onclick="setLanguage('ua')">UA</button>
-            <button class="modal-btn" onclick="setLanguage('en')">EN</button>
+            <p data-i18n="language">Language:</p>
+            <button class="modal-btn lang-btn" id="langUA" onclick="setLanguage('ua')">🇺🇦 UA</button>
+            <button class="modal-btn lang-btn" id="langEN" onclick="setLanguage('en')">🇬🇧 EN</button>
           </div>
+
           <button class="modal-close">×</button>
         </div>
       </div>
@@ -103,28 +99,31 @@
       <!-- Profile Modal -->
       <div class="modal" id="profileModal">
         <div class="modal-content">
-          <h2>User profile</h2>
+          <h2 data-i18n="profile">User profile</h2>
 
           <div id="profileAvatarContainer"
             style="position: relative; width: 120px; height: 120px; margin: 0 auto 15px auto; cursor: pointer;">
             <img class="pp" id="profileAvatar" src="/images/proff.png" alt="Avatar"
               style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; display: block;" />
             <div id="avatarOverlay"
-              style="position: absolute; top: 0; left: 0; width: 120px; height: 120px; border-radius: 50%; background: rgba(0,0,0,0.5); color: white; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s;">
-              Click to change avatar
+              style="position: absolute; top: 0; left: 0; width: 120px; height: 120px; border-radius: 50%; background: rgba(0,0,0,0.5); color: white; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s; font-size: 12px; padding: 10px; box-sizing: border-box;">
+              <span data-i18n="changeAvatar">Click to change</span>
             </div>
           </div>
 
           <input type="file" id="avatarInput" accept="image/*" class="modal-input" style="display: none;" />
 
-          <input type="text" id="profileName" class="modal-input" placeholder="Name" />
-          <input type="email" id="profileEmail" class="modal-input" placeholder="Email" />
-          <div style="position: relative; width: 100%; max-width: 300px; margin-bottom: 15px;">
+          <input type="text" id="profileName" class="modal-input" data-i18n-placeholder="namePlaceholder" placeholder="Name" />
+          <input type="email" id="profileEmail" class="modal-input" data-i18n-placeholder="emailPlaceholder" placeholder="Email" />
+
+          <!-- Verified badge -->
+          <div id="verifiedBadge" class="verified-badge hidden">
+            <span>✓</span> <span data-i18n="verified">Verified</span>
           </div>
 
-          <button id="logoutBtn" class="modal-btn">Go out</button>
-          <button id="verifyBtn" class="modal-btn">Get verified</button>
-          <button id="saveProfileBtn" class="modal-btn">Save changes</button>
+          <button id="logoutBtn" class="modal-btn" data-i18n="logout">Go out</button>
+          <button id="verifyBtn" class="modal-btn" data-i18n="verify">Get verified</button>
+          <button id="saveProfileBtn" class="modal-btn" data-i18n="save">Save changes</button>
 
           <button class="modal-close">×</button>
         </div>
@@ -133,11 +132,11 @@
       <!-- Login Modal -->
       <div class="modal" id="loginModal">
         <div class="modal-content">
-          <h2>Login</h2>
-          <input type="text" placeholder="Email" class="modal-input" />
-          <input type="password" placeholder="Password" class="modal-input" />
-          <button class="modal-btn">Log In</button>
-          <button class="modal-btn google-btn" style="margin-top: 10px;">Log in with Google</button>
+          <h2 data-i18n="login">Login</h2>
+          <input type="text" data-i18n-placeholder="emailPlaceholder" placeholder="Email" class="modal-input" />
+          <input type="password" data-i18n-placeholder="passwordPlaceholder" placeholder="Password" class="modal-input" />
+          <button class="modal-btn" data-i18n="login">Log In</button>
+          <button class="modal-btn google-btn" style="margin-top: 10px;" data-i18n="loginGoogle">Log in with Google</button>
           <button class="modal-close">×</button>
         </div>
       </div>
@@ -145,45 +144,42 @@
       <!-- Register Modal -->
       <div class="modal" id="registerModal">
         <div class="modal-content">
-          <h2>Register</h2>
-          <input type="text" placeholder="Name" class="modal-input" />
-          <input type="text" placeholder="Email" class="modal-input" />
-          <input type="password" placeholder="Password" class="modal-input" />
-          <button class="modal-btn">Sign Up</button>
-
-          <button class="modal-btn google-btn" style="margin-top: 10px;">Sign up with Google</button>
+          <h2 data-i18n="signup">Register</h2>
+          <input type="text" data-i18n-placeholder="namePlaceholder" placeholder="Name" class="modal-input" />
+          <input type="text" data-i18n-placeholder="emailPlaceholder" placeholder="Email" class="modal-input" />
+          <input type="password" data-i18n-placeholder="passwordPlaceholder" placeholder="Password" class="modal-input" />
+          <button class="modal-btn" data-i18n="signup">Sign Up</button>
+          <button class="modal-btn google-btn" style="margin-top: 10px;" data-i18n="signupGoogle">Sign up with Google</button>
           <button class="modal-close">×</button>
         </div>
       </div>
 
-           <!-- Send Modal -->
-    <div class="modal" id="sendModal">
-  <div class="modal-content" style="position: relative;">
-    <div class="exchange-rates">
-      <div>
-        <img src="/images/Dolar_icons.png" alt="USD" class="currency-icon" />
-        <span id="usdRate">--.--₴</span>
+      <!-- Send Modal -->
+      <div class="modal" id="sendModal">
+        <div class="modal-content" style="position: relative;">
+          <div class="exchange-rates">
+            <div>
+              <img src="/images/Dolar_icons.png" alt="USD" class="currency-icon" />
+              <span id="usdRate">--.--₴</span>
+            </div>
+            <div>
+              <img src="/images/EURO_icons.png" alt="EUR" class="currency-icon" />
+              <span id="eurRate">--.--₴</span>
+            </div>
+          </div>
+          <h2 data-i18n="sendMoney">Send Money</h2>
+          <input type="text" data-i18n-placeholder="cardPlaceholder" placeholder="Card number" class="modal-input" />
+          <input type="number" data-i18n-placeholder="amountPlaceholder" placeholder="Amount (€)" class="modal-input" />
+          <button class="modal-btn" onclick="showMessage(translations[currentLang].inDev, 'info')" data-i18n="send">Send</button>
+          <button class="modal-close">×</button>
+        </div>
       </div>
-      <div>
-        <img src="/images/EURO_icons.png" alt="EUR" class="currency-icon" />
-        <span id="eurRate">--.--₴</span>
-      </div>
-    </div>
-    <!-- Інший вміст модалки -->
-    <h2>Send Money</h2>
-    <input type="text" placeholder="Card number" class="modal-input" />
-    <input type="number" placeholder="Amount (€)" class="modal-input" />
-    <button class="modal-btn" onclick="showMessage('In the process of development', 'info')">Send</button>
-    <button class="modal-close">×</button>
-  </div>
-</div>
-
 
       <!-- History Modal -->
       <div class="modal" id="historyModal">
         <div class="modal-content">
-          <h2>History</h2>
-          <p class="his">Currently unavailable</p>
+          <h2 data-i18n="history">History</h2>
+          <p class="his" data-i18n="unavailable">Currently unavailable</p>
           <button class="modal-close">×</button>
         </div>
       </div>
@@ -191,19 +187,19 @@
       <!-- New Card Modal -->
       <div class="modal" id="newCardModal">
         <div class="modal-content">
-          <h2>New Card</h2>
-          <p class="cois">Choose a country</p>
+          <h2 data-i18n="newCard">New Card</h2>
+          <p class="cois" data-i18n="chooseCountry">Choose a country</p>
           <select class="modal-input">
-            <option>Ukraine</option>
-            <option>France</option>
-            <option>Italy</option>
-            <option>USA</option>
-            <option>Poland</option>
-            <option>Cyprus</option>
-            <option>Germany</option>
+            <option data-i18n-opt="ukraine">Ukraine</option>
+            <option data-i18n-opt="france">France</option>
+            <option data-i18n-opt="italy">Italy</option>
+            <option data-i18n-opt="usa">USA</option>
+            <option data-i18n-opt="poland">Poland</option>
+            <option data-i18n-opt="cyprus">Cyprus</option>
+            <option data-i18n-opt="germany">Germany</option>
           </select>
-          <p class="cois">It costs 0.50€</p>
-          <button class="modal-btn" onclick="showMessage('In the process of development', 'info')">Create</button>
+          <p class="cois" data-i18n="costs">It costs 0.50€</p>
+          <button class="modal-btn" onclick="showMessage(translations[currentLang].inDev, 'info')" data-i18n="create">Create</button>
           <button class="modal-close">×</button>
         </div>
       </div>
